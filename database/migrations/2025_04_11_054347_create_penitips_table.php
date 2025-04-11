@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('penitips', function (Blueprint $table) {
-            $table->string('id_penitip');
+            $table->string('id_penitip')->primary();
             $table->string('nama_penitip');
             $table->string('email');
             $table->string('password');
             $table->string('no_telp');
-            $table->string("nik");
+            $table->string('nik');
             $table->decimal('saldo');
             $table->integer('poin');
             $table->integer('akumulasi_rating');
