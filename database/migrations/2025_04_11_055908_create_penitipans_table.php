@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('id_penitip');
             $table->date('tanggal_penitipan');
             $table->date('batas_penitipan');
-            
+            $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
         });
     }
 

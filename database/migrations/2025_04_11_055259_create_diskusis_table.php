@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('id_pembeli');
             $table->string('id_pegawai');
             $table->string('detail_diskusi');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
         });
     }
 

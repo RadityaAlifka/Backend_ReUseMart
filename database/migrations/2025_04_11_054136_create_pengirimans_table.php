@@ -18,6 +18,8 @@ return new class extends Migration
             $table->date('tanggal_pengiriman');
             $table->string('status_pengiriman');
             $table->float('ongkir');
+            $table->foreign('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
+            $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
 
         });
     }
