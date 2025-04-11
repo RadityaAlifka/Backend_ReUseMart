@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('barangs', function (Blueprint $table) {
             $table->string('id_barang')->primary(); 
             $table->string('id_kategori');
-            $table->string('id_detailTransaksi');
             $table->integer('id_penitipan');
             $table->integer('id_donasi');
             $table->string('nama_barang');
@@ -25,9 +24,11 @@ return new class extends Migration
             $table->string('status_barang');
             $table->float('berat');
             $table->date('tanggal_keluar');
+            $table->foreign('id_kategori')->references('id_kategori')->on('kategori_barangs')->onDelete('cascade');
+            $table->foreign('id_penitipan')->references('id_penitipan')->on('penitips')->onDelete('cascade');
+            $table->foreign('id_donasi')->references('id_donasi')->on('donasis')->onDelete('cascade');
 
 
-            $table->timestamps();
         });
     }
 

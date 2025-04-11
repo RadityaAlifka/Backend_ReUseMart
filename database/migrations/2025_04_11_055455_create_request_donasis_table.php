@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('id_pegawai');
             $table->date('tanggal_request');
             $table->string('detail_request');
-
+            $table->foreign('id_organisasi')->references('id_organisasi')->on('organisasis')->onDelete('cascade');
+            $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
         });
     }
 

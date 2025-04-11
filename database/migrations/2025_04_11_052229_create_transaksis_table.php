@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('transaksis', function (Blueprint $table) {
             $table->string('id_transaksi')->primary();
-            $table->string('id_detailTransaksi');
             $table->integer('id_pengiriman');
             $table->integer('id_pengambilan');
             $table->string('id_pembeli');

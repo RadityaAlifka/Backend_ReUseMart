@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('detailtransaksis', function (Blueprint $table) {
             $table->string('id_transaksi');
             $table->string('id_barang');
-
+            $table->foreign('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id_barang')->on('barangs')->onDelete('cascade');
         });
     }
 

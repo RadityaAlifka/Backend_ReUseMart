@@ -19,6 +19,9 @@ return new class extends Migration
             $table->date('tanggal_pengambilan');
             $table->date('batas_pengambilan');
             $table->string('status_pengambilan');
+            $table->foreign('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
+            $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
         });
     }
 
