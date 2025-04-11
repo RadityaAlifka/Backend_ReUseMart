@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('id_pembeli');
             $table->string('id_barang');
             $table->integer('rating');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id_barang')->on('barangs')->onDelete('cascade');
         });
     }
 

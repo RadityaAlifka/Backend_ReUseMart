@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('id_organisasi');
             $table->date('tanggal_donasi');
             $table->string('nama_penerima');
+            $table->foreign('id_organisasi')->references('id_organisasi')->on('organisasis')->onDelete('cascade');
         });
     }
 

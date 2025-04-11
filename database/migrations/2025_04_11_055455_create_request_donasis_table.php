@@ -12,12 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('request_donasis', function (Blueprint $table) {
-            $table->integer('id_request');
+            $table->integer('id_request')->primary();
             $table->string('id_organisasi');
             $table->string('id_pegawai');
             $table->date('tanggal_request');
             $table->string('detail_request');
-
+            $table->foreign('id_organisasi')->references('id_organisasi')->on('organisasis')->onDelete('cascade');
+            $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
         });
     }
 

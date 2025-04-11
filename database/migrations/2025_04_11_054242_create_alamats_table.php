@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('detail_alamat');
             $table->integer('kode_pos');
             $table->string('label_alamat');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
         });
     }
 
