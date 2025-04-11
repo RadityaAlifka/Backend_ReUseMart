@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('no_telp');
-            $table->string("nik");
+            $table->string('nik');
             $table->decimal('saldo');
             $table->integer('poin');
             $table->integer('akumulasi_rating');
