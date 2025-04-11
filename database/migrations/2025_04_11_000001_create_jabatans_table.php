@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kategori_barangs', function (Blueprint $table) {
-            $table->string('id_kategori')->primary();
-            $table->string('nama_kategori');
+        Schema::create('jabatans', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+            $table->string('id_jabatan')->primary();
+            $table->string('nama_jabatan');
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kategori_barangs');
+        Schema::dropIfExists('jabatans');
     }
 };

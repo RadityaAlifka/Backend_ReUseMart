@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pengambilans', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->integer('id_pengambilan')->primary();
             $table->string('id_transaksi');
             $table->string('id_penitip');

@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('detailtransaksis', function (Blueprint $table) {
-            $table->string('id_transaksi');
+        Schema::create('ratings', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+            $table->integer('id_rating')->primary();
+            $table->string('id_pembeli');
             $table->string('id_barang');
-            $table->foreign('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
+            $table->integer('rating');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->foreign('id_barang')->references('id_barang')->on('barangs')->onDelete('cascade');
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('detailtransaksis');
+        Schema::dropIfExists('ratings');
     }
 };

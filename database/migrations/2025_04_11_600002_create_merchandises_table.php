@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pengirimans', function (Blueprint $table) {
-            $table->integer('id_pengiriman')->primary();
-            $table->string('id_transaksi');
+        Schema::create('merchandises', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+            $table->integer('id_merchandise')->primary();
+            $table->string('id_pembeli');
             $table->string('id_pegawai');
-            $table->date('tanggal_pengiriman');
-            $table->string('status_pengiriman');
-            $table->float('ongkir');
-            $table->foreign('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
+            $table->string('nama_merchandise');
+            $table->integer('stock_merchandise');
+            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
-
         });
     }
 
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pengirimans');
+        Schema::dropIfExists('merchandises');
     }
 };
