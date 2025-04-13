@@ -11,17 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pembelis', function (Blueprint $table) {
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->string('id_pembeli')->primary();
-            $table->string('nama_pembeli');
-            $table->string('email')->unique();
-            $table->string('no_telp');
-            $table->string('password');
-            $table->integer('poin');
+            $table->string('email')->index();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
-
-        
     }
 
     /**
@@ -29,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pembelis');
+        Schema::dropIfExists('password_reset_tokens');
     }
 };

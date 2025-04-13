@@ -12,12 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('diskusis', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->integer('id_diskusi')->primary();
             $table->string('id_pembeli');
             $table->string('id_pegawai');
             $table->string('detail_diskusi');
+            $table->string('id_barang');
+            $table->string('reply');
             $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id_barang')->on('barangs')->onDelete('cascade');
         });
     }
 
