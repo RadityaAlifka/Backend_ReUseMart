@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('pegawais', function (Blueprint $table) {
             $table->engine = 'InnoDB';
             
-            $table->string('id_pegawai')->primary();
-            $table->string('id_jabatan');
+            $table->id('id_pegawai');
+            $table->foreignId('id_jabatan')->references('id_jabatan')->on('jabatans')->onDelete('cascade');
             $table->string('nama_pegawai');
             $table->string('email')->unique();
             $table->string('no_telp');
             $table->string('password');
             $table->float('komisi');
-            $table->foreign('id_jabatan')->references('id_jabatan')->on('jabatans')->onDelete('cascade');
+            
         });
 
         

@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('merchandises', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->integer('id_merchandise')->primary();
-            $table->string('id_pembeli');
-            $table->string('id_pegawai');
+            $table->id('id_merchandise');
+            $table->foreignId('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            $table->foreignId('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
             $table->string('nama_merchandise');
             $table->integer('stock_merchandise');
-            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
-            $table->foreign('id_pegawai')->references('id_pegawai')->on('pegawais')->onDelete('cascade');
+            
         });
     }
 

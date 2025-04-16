@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('donasis', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->id('id_donasi')->primary();
-            $table->string('id_organisasi');
+            $table->id('id_donasi');
+            $table->foreignId('id_organisasi')->references('id_organisasi')->on('organisasis')->onDelete('cascade');
             $table->date('tanggal_donasi');
             $table->string('nama_penerima');
-            $table->foreign('id_organisasi')->references('id_organisasi')->on('organisasis')->onDelete('cascade');
+            
         });
     }
 
