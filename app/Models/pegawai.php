@@ -8,7 +8,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Auth\Authenticatable;
 /**
  * Class Pegawai
  * 
@@ -28,8 +30,11 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @package App\Models
  */
-class Pegawai extends Model
-{
+class Pegawai extends Model implements AuthenticatableContract
+{	
+
+	use HasApiTokens, Authenticatable;
+	
 	protected $table = 'pegawais';
 	protected $primaryKey = 'id_pegawai';
 	public $timestamps = false;
