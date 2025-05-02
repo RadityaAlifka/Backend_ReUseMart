@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('pegawais', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            
             $table->id('id_pegawai');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('id_jabatan')->references('id_jabatan')->on('jabatans')->onDelete('cascade');
             $table->string('nama_pegawai');
             $table->string('email')->unique();

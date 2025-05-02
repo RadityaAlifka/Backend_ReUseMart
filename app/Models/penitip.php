@@ -67,4 +67,7 @@ class Penitip extends Model implements AuthenticatableContract
 	{
 		return $this->hasMany(Penitipan::class, 'id_penitip');
 	}
+	public function user() {
+        return $this->belongsTo(User::class);
+    }
 }

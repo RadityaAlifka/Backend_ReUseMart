@@ -81,4 +81,7 @@ class Pegawai extends Model implements AuthenticatableContract
 	{
 		return $this->hasMany(RequestDonasi::class, 'id_pegawai');
 	}
+	public function user() {
+        return $this->belongsTo(User::class);
+    }
 }

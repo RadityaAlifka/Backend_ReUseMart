@@ -77,4 +77,7 @@ class Pembeli extends Model implements AuthenticatableContract
 	{
 		return $this->hasMany(Rating::class, 'id_pembeli');
 	}
+	public function user() {
+        return $this->belongsTo(User::class);
+    }
 }

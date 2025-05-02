@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('organisasis', function (Blueprint $table) {
             $table->engine = 'InnoDB';
             $table->id('id_organisasi');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nama_organisasi');
             $table->string('alamat');
             $table->string('email')->unique();

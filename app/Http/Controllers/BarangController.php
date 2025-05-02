@@ -3,22 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\KategoriBarang;
+use App\Models\Penitipan;
+use App\Models\Donasi;
 use Illuminate\Http\Request;
 
 class BarangController extends Controller
 {
     public function index()
     {
-        $barang = Barang::all();
+        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])->get();
         return response()->json($barang);
     }
 
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'id_kategori' => 'required|integer',
-            'id_penitipan' => 'required|integer',
-            'id_donasi' => 'nullable|integer',
+            'id_kategori' => 'required|exists:kategori_barangs,id_kategori',
+            'id_penitipan' => 'required|exists:penitipans,id_penitipan',
+            'id_donasi' => 'nullable|exists:donasis,id_donasi',
             'nama_barang' => 'required|string|max:255',
             'deskripsi_barang' => 'required|string',
             'garansi' => 'nullable|string|max:255',
@@ -33,13 +36,13 @@ class BarangController extends Controller
 
         return response()->json([
             'message' => 'Barang created successfully',
-            'data' => $barang
+            'data' => $barang->load(['kategori_barang', 'penitipan', 'donasi'])
         ], 201);
     }
 
     public function show($id)
     {
-        $barang = Barang::find($id);
+        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])->find($id);
 
         if (!$barang) {
             return response()->json(['message' => 'Barang not found'], 404);
@@ -57,9 +60,9 @@ class BarangController extends Controller
         }
 
         $validatedData = $request->validate([
-            'id_kategori' => 'sometimes|required|integer',
-            'id_penitipan' => 'sometimes|required|integer',
-            'id_donasi' => 'nullable|integer',
+            'id_kategori' => 'sometimes|required|exists:kategori_barangs,id_kategori',
+            'id_penitipan' => 'sometimes|required|exists:penitipans,id_penitipan',
+            'id_donasi' => 'nullable|exists:donasis,id_donasi',
             'nama_barang' => 'sometimes|required|string|max:255',
             'deskripsi_barang' => 'sometimes|required|string',
             'garansi' => 'nullable|string|max:255',
@@ -74,7 +77,7 @@ class BarangController extends Controller
 
         return response()->json([
             'message' => 'Barang updated successfully',
-            'data' => $barang
+            'data' => $barang->load(['kategori_barang', 'penitipan', 'donasi'])
         ]);
     }
 

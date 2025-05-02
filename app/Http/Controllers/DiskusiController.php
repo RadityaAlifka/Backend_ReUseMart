@@ -9,30 +9,31 @@ class DiskusiController extends Controller
 {
     public function index()
     {
-        $diskusi = Diskusi::all();
+        $diskusi = Diskusi::with(['barang', 'pembeli', 'pegawai'])->get();
         return response()->json($diskusi);
     }
 
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'id_barang' => 'required|integer',
-            'id_user' => 'required|integer',
-            'isi_diskusi' => 'required|string',
-            'tanggal_diskusi' => 'required|date',
+            'id_barang' => 'required|exists:barangs,id_barang',
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli',
+            'id_pegawai' => 'nullable|exists:pegawais,id_pegawai',
+            'detail_diskusi' => 'required|string',
+            'reply' => 'nullable|string',
         ]);
 
         $diskusi = Diskusi::create($validatedData);
 
         return response()->json([
             'message' => 'Diskusi created successfully',
-            'data' => $diskusi
+            'data' => $diskusi->load(['barang', 'pembeli', 'pegawai'])
         ], 201);
     }
 
     public function show($id)
     {
-        $diskusi = Diskusi::find($id);
+        $diskusi = Diskusi::with(['barang', 'pembeli', 'pegawai'])->find($id);
 
         if (!$diskusi) {
             return response()->json(['message' => 'Diskusi not found'], 404);
@@ -50,17 +51,18 @@ class DiskusiController extends Controller
         }
 
         $validatedData = $request->validate([
-            'id_barang' => 'sometimes|required|integer',
-            'id_user' => 'sometimes|required|integer',
-            'isi_diskusi' => 'sometimes|required|string',
-            'tanggal_diskusi' => 'sometimes|required|date',
+            'id_barang' => 'sometimes|required|exists:barangs,id_barang',
+            'id_pembeli' => 'sometimes|required|exists:pembelis,id_pembeli',
+            'id_pegawai' => 'nullable|exists:pegawais,id_pegawai',
+            'detail_diskusi' => 'sometimes|required|string',
+            'reply' => 'nullable|string',
         ]);
 
         $diskusi->update($validatedData);
 
         return response()->json([
             'message' => 'Diskusi updated successfully',
-            'data' => $diskusi
+            'data' => $diskusi->load(['barang', 'pembeli', 'pegawai'])
         ]);
     }
 

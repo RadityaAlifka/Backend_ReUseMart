@@ -9,15 +9,16 @@ class DetailtransaksiController extends Controller
 {
     public function index()
     {
-        $detailTransaksi = Detailtransaksi::all();
+        // Include related models using eager loading
+        $detailTransaksi = Detailtransaksi::with(['barang', 'transaksi'])->get();
         return response()->json($detailTransaksi);
     }
 
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'id_transaksi' => 'required|integer',
-            'id_barang' => 'required|integer',
+            'id_transaksi' => 'required|exists:transaksis,id_transaksi',
+            'id_barang' => 'required|exists:barangs,id_barang',
             'jumlah' => 'required|integer',
             'subtotal' => 'required|numeric',
         ]);
@@ -26,13 +27,13 @@ class DetailtransaksiController extends Controller
 
         return response()->json([
             'message' => 'Detail Transaksi created successfully',
-            'data' => $detailTransaksi
+            'data' => $detailTransaksi->load(['barang', 'transaksi'])
         ], 201);
     }
 
     public function show($id)
     {
-        $detailTransaksi = Detailtransaksi::find($id);
+        $detailTransaksi = Detailtransaksi::with(['barang', 'transaksi'])->find($id);
 
         if (!$detailTransaksi) {
             return response()->json(['message' => 'Detail Transaksi not found'], 404);
@@ -50,8 +51,8 @@ class DetailtransaksiController extends Controller
         }
 
         $validatedData = $request->validate([
-            'id_transaksi' => 'sometimes|required|integer',
-            'id_barang' => 'sometimes|required|integer',
+            'id_transaksi' => 'sometimes|required|exists:transaksis,id_transaksi',
+            'id_barang' => 'sometimes|required|exists:barangs,id_barang',
             'jumlah' => 'sometimes|required|integer',
             'subtotal' => 'sometimes|required|numeric',
         ]);
@@ -60,7 +61,7 @@ class DetailtransaksiController extends Controller
 
         return response()->json([
             'message' => 'Detail Transaksi updated successfully',
-            'data' => $detailTransaksi
+            'data' => $detailTransaksi->load(['barang', 'transaksi'])
         ]);
     }
 

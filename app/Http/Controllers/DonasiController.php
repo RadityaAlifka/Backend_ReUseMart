@@ -9,29 +9,29 @@ class DonasiController extends Controller
 {
     public function index()
     {
-        $donasi = Donasi::all();
+        $donasi = Donasi::with('organisasi')->get();
         return response()->json($donasi);
     }
 
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'id_user' => 'required|integer',
+            'id_organisasi' => 'required|exists:organisasis,id_organisasi',
             'tanggal_donasi' => 'required|date',
-            'total_donasi' => 'required|numeric',
+            'nama_penerima' => 'required|string|max:255',
         ]);
 
         $donasi = Donasi::create($validatedData);
 
         return response()->json([
             'message' => 'Donasi created successfully',
-            'data' => $donasi
+            'data' => $donasi->load('organisasi')
         ], 201);
     }
 
     public function show($id)
     {
-        $donasi = Donasi::find($id);
+        $donasi = Donasi::with('organisasi')->find($id);
 
         if (!$donasi) {
             return response()->json(['message' => 'Donasi not found'], 404);
@@ -49,16 +49,16 @@ class DonasiController extends Controller
         }
 
         $validatedData = $request->validate([
-            'id_user' => 'sometimes|required|integer',
+            'id_organisasi' => 'sometimes|required|exists:organisasis,id_organisasi',
             'tanggal_donasi' => 'sometimes|required|date',
-            'total_donasi' => 'sometimes|required|numeric',
+            'nama_penerima' => 'sometimes|required|string|max:255',
         ]);
 
         $donasi->update($validatedData);
 
         return response()->json([
             'message' => 'Donasi updated successfully',
-            'data' => $donasi
+            'data' => $donasi->load('organisasi')
         ]);
     }
 

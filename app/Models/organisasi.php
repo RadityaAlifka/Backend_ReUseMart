@@ -51,4 +51,7 @@ class Organisasi extends Model
 	{
 		return $this->hasMany(RequestDonasi::class, 'id_organisasi');
 	}
+	public function user() {
+        return $this->belongsTo(User::class);
+    }
 }
