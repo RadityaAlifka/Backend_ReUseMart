@@ -3,20 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pegawai;
+use App\Models\Jabatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class PegawaiController extends Controller
 {
-    // Get all pegawai
     public function index()
     {
         $pegawais = Pegawai::with('jabatan')->get();
         return response()->json($pegawais);
     }
 
-    // Store a new pegawai
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -38,7 +37,6 @@ class PegawaiController extends Controller
         ], 201);
     }
 
-    // Show a specific pegawai
     public function show($id)
     {
         $pegawai = Pegawai::with('jabatan')->find($id);
@@ -50,7 +48,6 @@ class PegawaiController extends Controller
         return response()->json($pegawai);
     }
 
-    // Update a specific pegawai
     public function update(Request $request, $id)
     {
         $pegawai = Pegawai::find($id);
@@ -80,7 +77,6 @@ class PegawaiController extends Controller
         ]);
     }
 
-    // Delete a specific pegawai
     public function destroy($id)
     {
         $pegawai = Pegawai::find($id);
@@ -92,36 +88,5 @@ class PegawaiController extends Controller
         $pegawai->delete();
 
         return response()->json(['message' => 'Pegawai deleted successfully']);
-    }
-
-    public function login(Request $request)
-    {
-        $validatedData = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $pegawai = Pegawai::where('email', $validatedData['email'])->first();
-
-        if (!$pegawai || !Hash::check($validatedData['password'], $pegawai->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $token = $pegawai->createToken('pegawai-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'token' => $token,
-            'pegawai' => $pegawai
-        ]);
-    }
-
-    // Logout for pegawai
-    public function logout(Request $request)
-    {
-        // Revoke all tokens for the authenticated pegawai
-        $request->user()->tokens()->delete();
-
-        return response()->json(['message' => 'Logout successful']);
     }
 }

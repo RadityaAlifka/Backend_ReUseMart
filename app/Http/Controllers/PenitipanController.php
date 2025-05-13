@@ -14,6 +14,27 @@ class PenitipanController extends Controller
         return response()->json($penitipans);
     }
 
+    public function extendPenitipan($id)
+    {
+        $penitipan = Penitipan::find($id);
+
+        if (!$penitipan) {
+            return response()->json(['message' => 'Penitipan not found'], 404);
+        }
+
+        if ($penitipan->perpanjangan) {
+            return response()->json(['message' => 'Masa titipan sudah diperpanjang sebelumnya'], 400);
+        }
+
+        $penitipan->batas_penitipan = $penitipan->batas_penitipan->addDays(30);
+        $penitipan->perpanjangan = true;
+        $penitipan->save();
+
+        return response()->json([
+            'message' => 'Masa titipan berhasil diperpanjang',
+            'data' => $penitipan
+        ]);
+    }
     // Store a new penitipan
     public function store(Request $request)
     {

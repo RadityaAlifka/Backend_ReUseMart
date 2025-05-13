@@ -52,7 +52,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // LOGOUT
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();

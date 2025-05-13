@@ -92,36 +92,5 @@ class PembeliController extends Controller
         return response()->json(['message' => 'Pembeli deleted successfully']);
     }
 
-    // Login for pembeli
-    public function login(Request $request)
-    {
-        $validatedData = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $pembeli = Pembeli::where('email', $validatedData['email'])->first();
-
-        if (!$pembeli || !Hash::check($validatedData['password'], $pembeli->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        // Generate a token (you can use Sanctum or Passport for token-based authentication)
-        $token = $pembeli->createToken('pembeli-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'token' => $token,
-            'pembeli' => $pembeli
-        ]);
-    }
-
-    // Logout for pembeli
-    public function logout(Request $request)
-    {
-        // Revoke all tokens for the authenticated pembeli
-        $request->user()->tokens()->delete();
-
-        return response()->json(['message' => 'Logout successful']);
-    }
+    
 }

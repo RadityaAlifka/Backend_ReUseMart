@@ -50,7 +50,26 @@ class BarangController extends Controller
 
         return response()->json($barang);
     }
+  
+    public function pengambilanBarang($id)
+    {
+        $barang = Barang::find($id);
 
+        if (!$barang) {
+            return response()->json(['message' => 'Barang not found'], 404);
+        }
+
+        if ($barang->status_barang !== 'Masa Titip Habis') {
+            return response()->json(['message' => 'Barang tidak dalam status Masa Titip Habis'], 400);
+        }
+
+        $barang->updateStatus('Diambil');
+
+        return response()->json([
+            'message' => 'Barang berhasil diambil',
+            'data' => $barang
+        ]);
+    }
     public function update(Request $request, $id)
     {
         $barang = Barang::find($id);

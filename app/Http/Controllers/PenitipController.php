@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Penitip;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 
 class PenitipController extends Controller
 {
@@ -16,40 +14,28 @@ class PenitipController extends Controller
         return response()->json($penitips);
     }
 
-   
-   public function registerPenitip(Request $request)
+    public function store(Request $request)
     {
-    $validated = $request->validate([
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6|confirmed',
-        'nama' => 'required',
-        'no_telp' => 'required',
-        'nik' => 'required',
-    ]);
+        $validatedData = $request->validate([
+            'nama_penitip' => 'required|string|max:255',
+            'email' => 'required|email|unique:penitips,email',
+            'password' => 'required|string|min:8',
+            'no_telp' => 'required|string|max:15',
+            'nik' => 'required|string|max:16|unique:penitips,nik',
+            'saldo' => 'required|numeric|min:0',
+            'poin' => 'required|integer|min:0',
+            'akumulasi_rating' => 'required|integer|min:0',
+        ]);
 
-    $user = User::create([
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
-        'level' => 'penitip',
-    ]);
+        $validatedData['password'] = Hash::make($validatedData['password']);
 
-    Penitip::create([
-        'user_id' => $user->id,
-        'nama_penitip' => $validated['nama'],
-        'email' => $user->email,
-        'password' => $user->password, 
-        'no_telp' => $validated['no_telp'],
-        'nik' => $validated['nik'],
-        'saldo' => 0,
-        'poin' => 0,
-        'akumulasi_rating' => 0,
-    ]);
+        $penitip = Penitip::create($validatedData);
 
-    return response()->json([
-        'message' => 'Penitip registered',
-        'token' => $user->createToken('auth_token')->plainTextToken
-    ]);
-}
+        return response()->json([
+            'message' => 'Penitip created successfully',
+            'data' => $penitip
+        ], 201);
+    }
 
 
     public function show($id)

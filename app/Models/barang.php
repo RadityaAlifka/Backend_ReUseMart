@@ -64,7 +64,11 @@ class Barang extends Model
 		'berat',
 		'tanggal_keluar'
 	];
-
+	public function updateStatus($newStatus)
+	{
+		$this->status_barang = $newStatus;
+		$this->save();
+	}
 	public function donasi()
 	{
 		return $this->belongsTo(Donasi::class, 'id_donasi');

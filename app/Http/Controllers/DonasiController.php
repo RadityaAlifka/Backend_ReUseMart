@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donasi;
+use App\Models\Barang;
 use Illuminate\Http\Request;
 
 class DonasiController extends Controller
@@ -12,7 +13,48 @@ class DonasiController extends Controller
         $donasi = Donasi::with('organisasi')->get();
         return response()->json($donasi);
     }
-
+    
+    public function donasikanBarang(Request $request, $id)
+    {
+        $barang = Barang::find($id);
+    
+        if (!$barang) {
+            return response()->json(['message' => 'Barang not found'], 404);
+        }
+    
+        if (!in_array($barang->status_barang, ['Masa Titip Habis', 'Menunggu Donasi'])) {
+            return response()->json(['message' => 'Barang tidak dapat didonasikan'], 400);
+        }
+    
+        $validatedData = $request->validate([
+            'id_organisasi' => 'required|exists:organisasis,id_organisasi',
+        ]);
+    
+        // Buat entri baru di tabel donasi
+        $donasi = Donasi::create([
+            'id_organisasi' => $validatedData['id_organisasi'],
+            'tanggal_donasi' => now(),
+            'nama_penerima' => 'Default Penerima',
+        ]);
+    
+        // Perbarui barang dengan id_donasi yang baru dibuat
+        $barang->update([
+            'status_barang' => 'Didonasikan',
+            'id_donasi' => $donasi->id_donasi,
+        ]);
+    
+        // Berikan poin kepada pemilik barang
+        $penitip = $barang->penitipan->penitip; // Ambil pemilik barang melalui relasi penitipan
+        if ($penitip) {
+            $poin = floor($barang->harga / 10000); // Hitung poin berdasarkan harga barang
+            $penitip->increment('poin', $poin); // Tambahkan poin ke penitip
+        }
+    
+        return response()->json([
+            'message' => 'Barang berhasil didonasikan dan poin diberikan kepada pemilik barang',
+            'data' => $barang->load('donasi.organisasi'), // Memuat relasi donasi dan organisasi
+        ]);
+    }
     public function store(Request $request)
     {
         $validatedData = $request->validate([

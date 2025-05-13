@@ -92,36 +92,4 @@ class OrganisasiController extends Controller
         return response()->json(['message' => 'Organisasi deleted successfully']);
     }
 
-    // Login for organisasi
-    public function login(Request $request)
-    {
-        $validatedData = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $organisasi = Organisasi::where('email', $validatedData['email'])->first();
-
-        if (!$organisasi || !Hash::check($validatedData['password'], $organisasi->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        // Generate a token (you can use Sanctum or Passport for token-based authentication)
-        $token = $organisasi->createToken('organisasi-token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'token' => $token,
-            'organisasi' => $organisasi
-        ]);
-    }
-
-    // Logout for organisasi
-    public function logout(Request $request)
-    {
-        // Revoke all tokens for the authenticated organisasi
-        $request->user()->tokens()->delete();
-
-        return response()->json(['message' => 'Logout successful']);
-    }
 }
