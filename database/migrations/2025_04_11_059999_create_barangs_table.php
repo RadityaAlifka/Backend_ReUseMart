@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('barangs', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->string('id_barang')->primary(); 
-            $table->string('id_kategori');
-            $table->unsignedBigInteger('id_penitipan');
-            $table->unsignedBigInteger('id_donasi');
+            $table->id('id_barang'); 
+            $table->foreignId('id_kategori')->references('id_kategori')->on('kategori_barangs')->onDelete('cascade');
+            $table->foreignId('id_penitipan')->references('id_penitipan')->on('penitipans')->onDelete('cascade');
+            $table->foreignId('id_donasi')->references('id_donasi')->on('donasis')->onDelete('cascade');
             $table->string('nama_barang');
             $table->string('deskripsi_barang');
             $table->string('garansi');
@@ -25,9 +25,7 @@ return new class extends Migration
             $table->string('status_barang');
             $table->float('berat');
             $table->date('tanggal_keluar');
-            $table->foreign('id_kategori')->references('id_kategori')->on('kategori_barangs')->onDelete('cascade');
-            $table->foreign('id_penitipan')->references('id_penitipan')->on('penitipans')->onDelete('cascade');
-            $table->foreign('id_donasi')->references('id_donasi')->on('donasis')->onDelete('cascade');
+            
 
 
         });

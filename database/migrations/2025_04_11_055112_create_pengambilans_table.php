@@ -13,16 +13,13 @@ return new class extends Migration
     {
         Schema::create('pengambilans', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->integer('id_pengambilan')->primary();
-            $table->string('id_transaksi');
-            $table->string('id_penitip');
-            $table->string('id_pembeli');
+            $table->id('id_pengambilan');
+           $table->foreignId('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
+            $table->foreignId('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
+            $table->foreignId('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->date('tanggal_pengambilan');
             $table->date('batas_pengambilan');
             $table->string('status_pengambilan');
-            $table->foreign('id_transaksi')->references('id_transaksi')->on('transaksis')->onDelete('cascade');
-            $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
-            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
         });
     }
 

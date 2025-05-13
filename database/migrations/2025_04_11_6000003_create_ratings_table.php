@@ -13,12 +13,11 @@ return new class extends Migration
     {
         Schema::create('ratings', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->integer('id_rating')->primary();
-            $table->string('id_pembeli');
-            $table->string('id_barang');
+            $table->id('id_rating');
+            $table->foreignId('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            $table->foreignId('id_barang')->references('id_barang')->on('barangs')->onDelete('cascade');
             $table->integer('rating');
-            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
-            $table->foreign('id_barang')->references('id_barang')->on('barangs')->onDelete('cascade');
+    
         });
     }
 

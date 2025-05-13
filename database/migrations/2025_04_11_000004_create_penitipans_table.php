@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('penitipans', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->id('id_penitipan')->primary();
-            $table->string('id_penitip');
+            $table->id('id_penitipan');
+            $table->foreignId('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
             $table->date('tanggal_penitipan');
             $table->date('batas_penitipan');
-            $table->foreign('id_penitip')->references('id_penitip')->on('penitips')->onDelete('cascade');
+            
         });
     }
 

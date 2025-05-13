@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('jabatans', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->string('id_jabatan')->primary();
+            $table->id('id_jabatan')->primary();
             $table->string('nama_jabatan');
         });
     }
