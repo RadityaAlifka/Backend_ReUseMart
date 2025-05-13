@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('kategori_barangs', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->string('id_kategori')->primary();
+            $table->id('id_kategori')->primary();
             $table->string('nama_kategori');
         });
     }

@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('alamats', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->string('id_alamat')->primary();
-            $table->string('id_pembeli');
+            $table->id('id_alamat');
+            $table->foreignId('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
             $table->string('kabupaten');
             $table->string('kecamatan');
             $table->string('kelurahan');
             $table->string('detail_alamat');
             $table->integer('kode_pos');
             $table->string('label_alamat');
-            $table->foreign('id_pembeli')->references('id_pembeli')->on('pembelis')->onDelete('cascade');
+            
         });
     }
 

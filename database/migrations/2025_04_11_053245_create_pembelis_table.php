@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pembelis', function (Blueprint $table) {
             $table->engine = 'InnoDB';
-            $table->string('id_pembeli')->primary();
+            $table->id('id_pembeli');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nama_pembeli');
             $table->string('email')->unique();
             $table->string('no_telp');
