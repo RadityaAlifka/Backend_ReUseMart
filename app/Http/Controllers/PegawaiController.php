@@ -21,19 +21,32 @@ class PegawaiController extends Controller
         $validatedData = $request->validate([
             'id_jabatan' => 'required|exists:jabatans,id_jabatan',
             'nama_pegawai' => 'required|string|max:255',
-            'email' => 'required|email|unique:pegawais,email',
+            'email' => 'required|email|unique:users,email',
             'no_telp' => 'required|string|max:15',
             'password' => 'required|string|min:8',
             'komisi' => 'required|numeric|min:0',
         ]);
 
-        $validatedData['password'] = Hash::make($validatedData['password']);
+        // Buat akun pengguna
+        $user = User::create([
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'level' => 'pegawai',
+        ]);
 
-        $pegawai = Pegawai::create($validatedData);
+        // Buat data pegawai terkait
+        $pegawai = Pegawai::create([
+            'id_user' => $user->id,
+            'id_jabatan' => $validatedData['id_jabatan'],
+            'nama_pegawai' => $validatedData['nama_pegawai'],
+            'no_telp' => $validatedData['no_telp'],
+            'komisi' => $validatedData['komisi'],
+        ]);
 
         return response()->json([
             'message' => 'Pegawai created successfully',
-            'data' => $pegawai->load('jabatan')
+            'user' => $user,
+            'pegawai' => $pegawai->load('jabatan'),
         ], 201);
     }
 

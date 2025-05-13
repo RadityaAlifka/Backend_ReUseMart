@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\User;
 use App\Models\Organisasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +34,37 @@ class OrganisasiController extends Controller
         return response()->json([
             'message' => 'Organisasi created successfully',
             'data' => $organisasi
+        ], 201);
+    }
+    public function register(Request $request)
+    {
+        $validatedData = $request->validate([
+            'nama_organisasi' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'email' => 'required|email|unique:users',
+            'no_telp' => 'required|string|max:15',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Buat akun pengguna
+        $user = User::create([
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'level' => 'organisasi',
+        ]);
+
+        // Buat data organisasi terkait
+        $organisasi = Organisasi::create([
+            'id_user' => $user->id,
+            'nama_organisasi' => $validatedData['nama_organisasi'],
+            'alamat' => $validatedData['alamat'],
+            'no_telp' => $validatedData['no_telp'],
+        ]);
+
+        return response()->json([
+            'message' => 'Organisasi registered successfully',
+            'user' => $user,
+            'organisasi' => $organisasi,
         ], 201);
     }
 

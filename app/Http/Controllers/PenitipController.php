@@ -18,7 +18,7 @@ class PenitipController extends Controller
     {
         $validatedData = $request->validate([
             'nama_penitip' => 'required|string|max:255',
-            'email' => 'required|email|unique:penitips,email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'no_telp' => 'required|string|max:15',
             'nik' => 'required|string|max:16|unique:penitips,nik',
@@ -27,16 +27,30 @@ class PenitipController extends Controller
             'akumulasi_rating' => 'required|integer|min:0',
         ]);
 
-        $validatedData['password'] = Hash::make($validatedData['password']);
+        // Buat akun pengguna
+        $user = User::create([
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'level' => 'penitip',
+        ]);
 
-        $penitip = Penitip::create($validatedData);
+        // Buat data penitip terkait
+        $penitip = Penitip::create([
+            'id_user' => $user->id,
+            'nama_penitip' => $validatedData['nama_penitip'],
+            'no_telp' => $validatedData['no_telp'],
+            'nik' => $validatedData['nik'],
+            'saldo' => $validatedData['saldo'],
+            'poin' => $validatedData['poin'],
+            'akumulasi_rating' => $validatedData['akumulasi_rating'],
+        ]);
 
         return response()->json([
             'message' => 'Penitip created successfully',
-            'data' => $penitip
+            'user' => $user,
+            'penitip' => $penitip,
         ], 201);
     }
-
 
     public function show($id)
     {

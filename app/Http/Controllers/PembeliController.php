@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\User;
 use App\Models\Pembeli;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +15,36 @@ class PembeliController extends Controller
         $pembelis = Pembeli::all();
         return response()->json($pembelis);
     }
+    public function register(Request $request)
+    {
+        $validatedData = $request->validate([
+            'nama_pembeli' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'no_telp' => 'required|string|max:15',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
+        // Buat akun pengguna
+        $user = User::create([
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'level' => 'pembeli',
+        ]);
+
+        // Buat data pembeli terkait
+        $pembeli = Pembeli::create([
+            'id_user' => $user->id,
+            'nama_pembeli' => $validatedData['nama_pembeli'],
+            'no_telp' => $validatedData['no_telp'],
+            'poin' => 0, // Default poin
+        ]);
+
+        return response()->json([
+            'message' => 'Pembeli registered successfully',
+            'user' => $user,
+            'pembeli' => $pembeli,
+        ], 201);
+    }
     // Store a new pembeli
     public function store(Request $request)
     {
