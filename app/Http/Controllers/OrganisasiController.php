@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
-class OrganisasiController extends Controller
+class OrganisasiController 
 {
     // Get all organisasi
     public function index()

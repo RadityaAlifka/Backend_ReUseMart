@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RequestDonasi;
 use Illuminate\Http\Request;
 
-class RequestDonasiController extends Controller
+class RequestDonasiController 
 {
     // Get all request donasis
     public function index()

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 
-class PenitipanController extends Controller
+class PenitipanController 
 {
     // Get all penitipans
     public function index()

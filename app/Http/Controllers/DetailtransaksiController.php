@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Detailtransaksi;
 use Illuminate\Http\Request;
 
-class DetailtransaksiController extends Controller
+class DetailtransaksiController 
 {
     public function index()
     {

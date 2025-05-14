@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pengiriman;
 use Illuminate\Http\Request;
 
-class PengirimanController extends Controller
+class PengirimanController 
 {
     // Get all pengirimans
     public function index()

@@ -30,10 +30,10 @@ use Illuminate\Auth\Authenticatable;
  *
  * @package App\Models
  */
-class Pegawai extends Model implements AuthenticatableContract
+class Pegawai extends Model 
 {	
 
-	use HasApiTokens, Authenticatable;
+	
 	
 	protected $table = 'pegawais';
 	protected $primaryKey = 'id_pegawai';
@@ -49,6 +49,7 @@ class Pegawai extends Model implements AuthenticatableContract
 	];
 
 	protected $fillable = [
+		'user_id',
 		'id_jabatan',
 		'nama_pegawai',
 		'email',

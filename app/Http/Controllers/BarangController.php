@@ -8,7 +8,7 @@ use App\Models\Penitipan;
 use App\Models\Donasi;
 use Illuminate\Http\Request;
 
-class BarangController extends Controller
+class BarangController 
 {
     public function index()
     {
@@ -30,7 +30,17 @@ class BarangController extends Controller
             'status_barang' => 'required|string|max:50',
             'berat' => 'required|numeric',
             'tanggal_keluar' => 'nullable|date',
+            'gambar1' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar1
+            'gambar2' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar2
         ]);
+
+        // Simpan gambar ke direktori
+        $gambar1Path = $request->file('gambar1')->store('images/barang');
+        $gambar2Path = $request->file('gambar2')->store('images/barang');
+
+        // Tambahkan path gambar ke data yang divalidasi
+        $validatedData['gambar1'] = $gambar1Path;
+        $validatedData['gambar2'] = $gambar2Path;
 
         $barang = Barang::create($validatedData);
 
@@ -50,7 +60,7 @@ class BarangController extends Controller
 
         return response()->json($barang);
     }
-  
+
     public function pengambilanBarang($id)
     {
         $barang = Barang::find($id);
@@ -70,6 +80,7 @@ class BarangController extends Controller
             'data' => $barang
         ]);
     }
+
     public function update(Request $request, $id)
     {
         $barang = Barang::find($id);
@@ -90,7 +101,18 @@ class BarangController extends Controller
             'status_barang' => 'sometimes|required|string|max:50',
             'berat' => 'sometimes|required|numeric',
             'tanggal_keluar' => 'nullable|date',
+            'gambar1' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar1
+            'gambar2' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar2
         ]);
+
+        // Perbarui gambar jika ada file baru
+        if ($request->hasFile('gambar1')) {
+            $validatedData['gambar1'] = $request->file('gambar1')->store('images/barang');
+        }
+
+        if ($request->hasFile('gambar2')) {
+            $validatedData['gambar2'] = $request->file('gambar2')->store('images/barang');
+        }
 
         $barang->update($validatedData);
 
