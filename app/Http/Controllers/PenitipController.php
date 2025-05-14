@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Penitip;
+use App\Models\User;
+use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -106,5 +108,17 @@ class PenitipController
 
         return response()->json(['message' => 'Penitip deleted successfully']);
     }
+    public function profil(Request $request)
+    {
+        $user = $request->user();
 
+        $penitip = Penitip::where('user_id', $user->id)->first();
+
+        if (!$penitip) {
+            return response()->json(['message' => 'Penitip not found'], 404);
+        }
+
+        return response()->json($penitip);
+    }
+    
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Pembeli;
+use App\Models\Alamat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -121,5 +122,23 @@ class PembeliController
         return response()->json(['message' => 'Pembeli deleted successfully']);
     }
 
-    
+    // Melihat profil pembeli yang sedang login beserta alamat yang di-assign ke pembeli
+    public function profil()
+    {
+        $user = Auth::user();
+
+        if (!$user || $user->level !== 'pembeli') {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $pembeli = Pembeli::with('alamats')->where('user_id', $user->id)->first();
+
+        if (!$pembeli) {
+            return response()->json(['message' => 'Pembeli not found'], 404);
+        }
+
+        return response()->json([
+            'pembeli' => $pembeli,
+        ]);
+    }
 }
