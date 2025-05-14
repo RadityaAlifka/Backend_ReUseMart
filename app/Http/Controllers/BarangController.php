@@ -121,7 +121,17 @@ class BarangController
             'data' => $barang->load(['kategori_barang', 'penitipan', 'donasi'])
         ]);
     }
+    public function barangBergaransi()
+    {
+        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
+            ->where('tanggal_garansi', '>=', now()) // Filter barang dengan garansi yang masih berlaku
+            ->get();
 
+        return response()->json([
+            'message' => 'Barang dengan garansi yang masih berlaku',
+            'data' => $barang
+        ]);
+    }
     public function destroy($id)
     {
         $barang = Barang::find($id);

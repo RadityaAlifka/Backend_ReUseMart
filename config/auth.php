@@ -40,6 +40,31 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            'hash' => false,
+        ],
+        'pembeli' => [
+        'driver' => 'sanctum',
+        'provider' => 'pembelis',
+        ],
+
+        // Guard untuk Penjual
+        'penitip' => [
+            'driver' => 'sanctum',
+            'provider' => 'penitips',
+        ],
+
+        // Guard untuk Admin
+        'pegawai' => [
+            'driver' => 'sanctum',
+            'provider' => 'pegawais',
+        ],
+        'organisasi' => [
+            'driver' => 'sanctum',
+            'provider' => 'organisasis',
+        ],
     ],
 
     /*
@@ -60,9 +85,31 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'users' =>  [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => App\Models\User::class,
+        ],
+    
+        // Provider untuk model Pembeli
+        'pembelis' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Pembeli::class,
+        ],
+    
+        // Provider untuk model Penjual (jika ada)
+        'penitips' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Penitip::class,
+        ],
+    
+        // Provider untuk model Admin (jika ada)
+        'pegawai' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Pegawai::class,
+        ],
+        'organisasi' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Organisasi::class,
         ],
 
         // 'users' => [

@@ -29,9 +29,9 @@ use Illuminate\Auth\Authenticatable;
  *
  * @package App\Models
  */
-class Pembeli extends Model 
+class Pembeli extends Model implements AuthenticatableContract 
 {
-	
+	use HasApiTokens, Authenticatable;
 
 	protected $table = 'pembelis';
 	protected $primaryKey = 'id_pembeli';

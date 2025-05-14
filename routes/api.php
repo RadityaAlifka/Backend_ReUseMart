@@ -12,14 +12,15 @@ use App\Http\Controllers\{
     DiskusiController,
     RequestDonasiController,
     DonasiController,
-    BarangController
+    BarangController,
+    HistoryController
 };
 
 // Routes untuk umum
 Route::prefix('public')->group(function () {
     Route::get('/barang', [BarangController::class, 'index']); // Menampilkan barang yang bisa dibeli
     Route::get('/barang/{id}', [BarangController::class, 'show']); // Menampilkan detail per barang
-    Route::get('/barang/{id}/garansi', [BarangController::class, 'checkGaransi']); // Memeriksa status garansi
+    Route::get('/barang/bergaransi', [BarangController::class, 'barangBergaransi']);
 });
 
 // Route untuk login
@@ -31,6 +32,7 @@ Route::post('/register/pembeli', [PembeliController::class, 'register']);
 // Registrasi organisasi
 Route::post('/register/organisasi', [OrganisasiController::class, 'register']);
 
+Route::get('/donasi-history-by-organisasi', [HistoryController::class, 'donasiHistoryByOrganisasi']);
 // Routes untuk admin (Pegawai dengan jabatan admin)
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
     Route::post('/pegawai', [PegawaiController::class, 'store']);
@@ -73,6 +75,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::get('/alamat/search', [AlamatController::class, 'search']);
     Route::post('/diskusi', [DiskusiController::class, 'store']);
     Route::get('/diskusi', [DiskusiController::class, 'index']);
+    Route::get('/history', [HistoryController::class, 'index']);
 });
 
 // Routes untuk organisasi
