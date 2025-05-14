@@ -6,7 +6,7 @@ use App\Models\Alamat;
 use App\Models\Pembeli;
 use Illuminate\Http\Request;
 
-class AlamatController extends Controller
+class AlamatController 
 {
     public function index()
     {

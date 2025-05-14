@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Diskusi;
 use Illuminate\Http\Request;
 
-class DiskusiController extends Controller
+class DiskusiController 
 {
     public function index()
     {

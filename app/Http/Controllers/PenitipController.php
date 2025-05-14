@@ -6,7 +6,7 @@ use App\Models\Penitip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class PenitipController extends Controller
+class PenitipController 
 {
     public function index()
     {

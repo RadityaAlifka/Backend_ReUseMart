@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class KategoriBarangController extends Controller
+class KategoriBarangController 
 {
     public function index(){
         $kategoriBarang = KategoriBarang::all();

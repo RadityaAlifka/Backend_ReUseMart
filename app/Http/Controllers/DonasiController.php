@@ -6,7 +6,7 @@ use App\Models\Donasi;
 use App\Models\Barang;
 use Illuminate\Http\Request;
 
-class DonasiController extends Controller
+class DonasiController 
 {
     public function index()
     {

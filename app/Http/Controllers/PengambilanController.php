@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pengambilan;
 use Illuminate\Http\Request;
 
-class PengambilanController extends Controller
+class PengambilanController 
 {
     // Get all pengambilans
     public function index()
