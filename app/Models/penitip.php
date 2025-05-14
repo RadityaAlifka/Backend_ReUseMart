@@ -29,9 +29,9 @@ use Illuminate\Auth\Authenticatable;
  *
  * @package App\Models
  */
-class Penitip extends Model implements AuthenticatableContract
+class Penitip extends Model 
 {
-	use HasApiTokens, Authenticatable;
+
 
 	protected $table = 'penitips';
 	protected $primaryKey = 'id_penitip';
@@ -48,6 +48,7 @@ class Penitip extends Model implements AuthenticatableContract
 	];
 
 	protected $fillable = [
+		'user_id',
 		'nama_penitip',
 		'email',
 		'password',

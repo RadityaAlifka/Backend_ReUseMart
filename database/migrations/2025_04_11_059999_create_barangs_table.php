@@ -25,9 +25,6 @@ return new class extends Migration
             $table->string('status_barang');
             $table->float('berat');
             $table->date('tanggal_keluar');
-            
-
-
         });
     }
 

@@ -42,14 +42,17 @@ class Transaksi extends Model
 
 	protected $fillable = [
 		'id_pembeli',
-		'id_penjual',
+		
 		'tgl_pesan',
 		'tgl_lunas',
 		'diskon_poin',
 		'bukti_pembayaran',
 		'status_pembayaran'
 	];
-
+	public function pembeli()
+	{
+		return $this->belongsTo(Pembeli::class, 'id_pembeli');
+	}
 	public function detailtransaksi()
 	{
 		return $this->hasOne(Detailtransaksi::class, 'id_transaksi');

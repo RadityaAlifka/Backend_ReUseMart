@@ -29,7 +29,7 @@ use Illuminate\Auth\Authenticatable;
  *
  * @package App\Models
  */
-class Pembeli extends Model implements AuthenticatableContract
+class Pembeli extends Model implements AuthenticatableContract 
 {
 	use HasApiTokens, Authenticatable;
 
@@ -46,6 +46,7 @@ class Pembeli extends Model implements AuthenticatableContract
 	];
 
 	protected $fillable = [
+		
 		'nama_pembeli',
 		'email',
 		'no_telp',
