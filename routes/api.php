@@ -31,8 +31,9 @@ Route::post('/register/pembeli', [PembeliController::class, 'register']);
 
 // Registrasi organisasi
 Route::post('/register/organisasi', [OrganisasiController::class, 'register']);
-
-Route::get('/donasi-history-by-organisasi', [HistoryController::class, 'donasiHistoryByOrganisasi']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/getPegawaiLogin', [PegawaiController::class, 'getPegawaiLogin']);
+});
 // Routes untuk admin (Pegawai dengan jabatan admin)
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
     Route::post('/pegawai', [PegawaiController::class, 'store']);
@@ -58,6 +59,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
 });// Routes untuk penjual
 Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
     Route::get('/penitip', [PenitipController::class, 'index']); // Penjual bisa mengakses
+    Route::get('/penitip/history', [HistoryController::class, 'penjualanHistoryPenitip']); // Penjual bisa mengakses
+    Route::get('/penitip/profil', [PenitipController::class, 'profil']);
     Route::get('/penitip/search', [PenitipController::class, 'search']); // Penjual bisa mengakses
     Route::put('/penitip/{id}', [PenitipController::class, 'update']); // Penjual bisa mengakses
     Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']); // Penjual bisa mengakses
@@ -66,16 +69,16 @@ Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
 
 // Routes untuk pembeli
 Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
-    Route::get('/profil', [PembeliController::class, 'show']);
+    Route::get('/pembeli/profil', [PembeliController::class, 'profil']);
     Route::get('/transaksi', [PembeliController::class, 'history']);
     Route::post('/alamat', [AlamatController::class, 'store']);
     Route::put('/alamat/{id}', [AlamatController::class, 'update']);
     Route::delete('/alamat/{id}', [AlamatController::class, 'destroy']);
     Route::get('/alamat', [AlamatController::class, 'index']);
     Route::get('/alamat/search', [AlamatController::class, 'search']);
-    Route::post('/diskusi', [DiskusiController::class, 'store']);
-    Route::get('/diskusi', [DiskusiController::class, 'index']);
-    Route::get('/history', [HistoryController::class, 'index']);
+    Route::post('/pembeli/diskusi', [DiskusiController::class, 'store']);
+    Route::get('/pembeli/diskusi', [DiskusiController::class, 'index']);
+    Route::get('/pembeli/history', [HistoryController::class, 'index']);
 });
 
 // Routes untuk organisasi
@@ -90,7 +93,7 @@ Route::middleware(['auth:sanctum', 'checkRole:organisasi'])->group(function () {
 // Routes untuk owner
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
-    Route::get('/donasi/history', [DonasiController::class, 'index']);
+    Route::get('/donasi/history', [HistoryController::class, 'donasiHistoryByOrganisasi']);
     Route::post('/donasi', [DonasiController::class, 'store']);
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
 });

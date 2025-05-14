@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pegawai;
 use App\Models\Jabatan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -101,5 +102,20 @@ class PegawaiController
         $pegawai->delete();
 
         return response()->json(['message' => 'Pegawai deleted successfully']);
+    }
+
+    public function getPegawaiLogin()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $pegawai = Pegawai::with('jabatan')->where('user_id', $user->id)->first();
+
+        if (!$pegawai) {
+            return response()->json(['message' => 'Pegawai not found'], 404);
+        }
+        return response()->json($pegawai);
     }
 }
