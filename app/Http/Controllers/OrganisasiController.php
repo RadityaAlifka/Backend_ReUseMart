@@ -55,9 +55,11 @@ class OrganisasiController
 
         // Buat data organisasi terkait
         $organisasi = Organisasi::create([
-            'id_user' => $user->id,
+            'user_id' => $user->id,
             'nama_organisasi' => $validatedData['nama_organisasi'],
             'alamat' => $validatedData['alamat'],
+            'email' => $validatedData['email'],
+            'password' => $user->password,
             'no_telp' => $validatedData['no_telp'],
         ]);
 

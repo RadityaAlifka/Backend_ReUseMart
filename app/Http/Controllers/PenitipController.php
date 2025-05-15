@@ -38,8 +38,10 @@ class PenitipController
 
         // Buat data penitip terkait
         $penitip = Penitip::create([
-            'id_user' => $user->id,
+            'user_id' => $user->id,
             'nama_penitip' => $validatedData['nama_penitip'],
+            'email' => $validatedData['email'],
+            'password' => $user->password,
             'no_telp' => $validatedData['no_telp'],
             'nik' => $validatedData['nik'],
             'saldo' => $validatedData['saldo'],

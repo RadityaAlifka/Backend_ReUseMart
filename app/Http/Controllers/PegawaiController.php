@@ -37,10 +37,12 @@ class PegawaiController
 
         // Buat data pegawai terkait
         $pegawai = Pegawai::create([
-            'id_user' => $user->id,
+            'user_id' => $user->id,
             'id_jabatan' => $validatedData['id_jabatan'],
             'nama_pegawai' => $validatedData['nama_pegawai'],
+            'email' => $validatedData['email'],
             'no_telp' => $validatedData['no_telp'],
+            'password' => $user->password,
             'komisi' => $validatedData['komisi'],
         ]);
 

@@ -91,7 +91,7 @@ Route::middleware(['auth:sanctum', 'checkRole:organisasi'])->group(function () {
 });
 
 // Routes untuk owner
-Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->group(function () {
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
     Route::get('/donasi/history', [HistoryController::class, 'donasiHistoryByOrganisasi']);
     Route::post('/donasi', [DonasiController::class, 'store']);
