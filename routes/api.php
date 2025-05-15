@@ -25,7 +25,7 @@ Route::prefix('public')->group(function () {
 
 // Route untuk login
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::middleware(['auth:sanctum'])->post('/logout', [AuthController::class, 'logout']);
 // Registrasi pembeli
 Route::post('/register/pembeli', [PembeliController::class, 'register']);
 
@@ -44,7 +44,6 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->
     Route::put('/organisasi/{id}', [OrganisasiController::class, 'update']);
     Route::delete('/organisasi/{id}', [OrganisasiController::class, 'destroy']);
     Route::get('/organisasi', [OrganisasiController::class, 'index']);
-    Route::get('/organisasi/search', [OrganisasiController::class, 'search']);
 });
 
 // Routes untuk CS (Pegawai dengan jabatan CS)
@@ -87,7 +86,6 @@ Route::middleware(['auth:sanctum', 'checkRole:organisasi'])->group(function () {
     Route::put('/request-donasi/{id}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{id}', [RequestDonasiController::class, 'destroy']);
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
-    Route::get('/request-donasi/search', [RequestDonasiController::class, 'search']);
 });
 
 // Routes untuk owner
