@@ -14,7 +14,7 @@ class AlamatSeeder extends Seeder
     public function run(): void
     {
         // Ambil pembeli dari seeder sebelumnya
-        $pembeli = Pembeli::where('email', 'pembeli@example.com')->first();
+        $pembeli = Pembeli::where('email', 'pembeli123@example.com')->first();
 
         if ($pembeli) {
             Alamat::create([

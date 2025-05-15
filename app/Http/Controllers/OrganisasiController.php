@@ -43,7 +43,7 @@ class OrganisasiController
             'alamat' => 'required|string',
             'email' => 'required|email|unique:users',
             'no_telp' => 'required|string|max:15',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ]);
 
         // Buat akun pengguna
@@ -55,10 +55,13 @@ class OrganisasiController
 
         // Buat data organisasi terkait
         $organisasi = Organisasi::create([
-            'id_user' => $user->id,
+            'user_id' => $user->id,
             'nama_organisasi' => $validatedData['nama_organisasi'],
+            'email' => $validatedData['email'],
             'alamat' => $validatedData['alamat'],
             'no_telp' => $validatedData['no_telp'],
+            'password' => $user->password,
+
         ]);
 
         return response()->json([
@@ -82,32 +85,50 @@ class OrganisasiController
 
     // Update a specific organisasi
     public function update(Request $request, $id)
-    {
-        $organisasi = Organisasi::find($id);
+{
+    $organisasi = Organisasi::find($id);
 
-        if (!$organisasi) {
-            return response()->json(['message' => 'Organisasi not found'], 404);
-        }
-
-        $validatedData = $request->validate([
-            'nama_organisasi' => 'sometimes|required|string|max:255',
-            'alamat' => 'sometimes|required|string',
-            'email' => 'sometimes|required|email|unique:organisasis,email,' . $id . ',id_organisasi',
-            'no_telp' => 'sometimes|required|string|max:15',
-            'password' => 'sometimes|required|string|min:8',
-        ]);
-
-        if (isset($validatedData['password'])) {
-            $validatedData['password'] = Hash::make($validatedData['password']);
-        }
-
-        $organisasi->update($validatedData);
-
-        return response()->json([
-            'message' => 'Organisasi updated successfully',
-            'data' => $organisasi
-        ]);
+    if (!$organisasi) {
+        return response()->json(['message' => 'Organisasi not found'], 404);
     }
+
+    $validatedData = $request->validate([
+        'nama_organisasi' => 'sometimes|required|string|max:255',
+        'alamat' => 'sometimes|required|string',
+        'email' => 'sometimes|required|email|unique:organisasis,email,' . $id . ',id_organisasi',
+        'no_telp' => 'sometimes|required|string|max:15',
+        'password' => 'sometimes|required|string|min:8',
+    ]);
+
+    // Update email di tabel users jika berubah
+    if (isset($validatedData['email'])) {
+        $user = \App\Models\User::find($organisasi->user_id);
+        if ($user) {
+            $user->email = $validatedData['email'];
+            $user->save();
+        }
+    }
+
+    // Update password di tabel users jika berubah
+    if (isset($validatedData['password'])) {
+        $hashedPassword = \Hash::make($validatedData['password']);
+        $validatedData['password'] = $hashedPassword;
+
+        $user = \App\Models\User::find($organisasi->user_id);
+        if ($user) {
+            $user->password = $hashedPassword;
+            $user->save();
+        }
+    }
+
+    $organisasi->update($validatedData);
+
+    return response()->json([
+        'message' => 'Organisasi updated successfully',
+        'data' => $organisasi
+    ]);
+}
+
 
     // Delete a specific organisasi
     public function destroy($id)
@@ -117,6 +138,8 @@ class OrganisasiController
         if (!$organisasi) {
             return response()->json(['message' => 'Organisasi not found'], 404);
         }
+
+        $organisasi->user()->delete();
 
         $organisasi->delete();
 

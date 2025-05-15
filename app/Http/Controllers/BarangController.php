@@ -144,4 +144,17 @@ class BarangController
 
         return response()->json(['message' => 'Barang deleted successfully']);
     }
+
+    public function barangMenungguDonasi()
+{
+    $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
+        ->where('status_barang', 'Menunggu Donasi')
+        ->get();
+
+    return response()->json([
+        'message' => 'Barang dengan status Menunggu Donasi',
+        'data' => $barang
+    ]);
+}
+
 }

@@ -34,9 +34,11 @@ class PembeliController
 
         // Buat data pembeli terkait
         $pembeli = Pembeli::create([
-            'id_user' => $user->id,
+            'user_id' => $user->id,
             'nama_pembeli' => $validatedData['nama_pembeli'],
+            'email' => $validatedData['email'],
             'no_telp' => $validatedData['no_telp'],
+            'password' => $user->password,
             'poin' => 0, // Default poin
         ]);
 
