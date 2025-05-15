@@ -86,7 +86,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::post('/pembeli/diskusi', [DiskusiController::class, 'store']);
     Route::get('/pembeli/diskusi', [DiskusiController::class, 'index']);
     Route::get('/pembeli/history', [HistoryController::class, 'index']);
-});
+}); 
 
 // Routes untuk organisasi
 Route::middleware(['auth:sanctum', 'checkRole:organisasi'])->group(function () {

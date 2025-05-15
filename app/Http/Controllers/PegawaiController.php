@@ -73,12 +73,12 @@ class PegawaiController
         }
 
         $validatedData = $request->validate([
-            'id_jabatan' => 'sometimes|required|exists:jabatans,id_jabatan',
-            'nama_pegawai' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:pegawais,email,' . $id . ',id_pegawai',
-            'no_telp' => 'sometimes|required|string|max:15',
-            'password' => 'sometimes|required|string|min:8',
-            'komisi' => 'sometimes|required|numeric|min:0',
+            'id_jabatan' => 'sometimes|exists:jabatans,id_jabatan',
+            'nama_pegawai' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:pegawais,email,' . $id . ',id_pegawai',
+            'no_telp' => 'sometimes|string|max:15',
+            'password' => 'sometimes|string|min:8',
+            'komisi' => 'sometimes|numeric|min:0',
         ]);
 
         if (isset($validatedData['password'])) {

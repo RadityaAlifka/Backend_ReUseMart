@@ -76,14 +76,14 @@ class PenitipController
         }
 
         $validatedData = $request->validate([
-            'nama_penitip' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:penitips,email,' . $id . ',id_penitip',
-            'password' => 'sometimes|required|string|min:8',
-            'no_telp' => 'sometimes|required|string|max:15',
-            'nik' => 'sometimes|required|string|max:16|unique:penitips,nik,' . $id . ',id_penitip',
-            'saldo' => 'sometimes|required|numeric|min:0',
-            'poin' => 'sometimes|required|integer|min:0',
-            'akumulasi_rating' => 'sometimes|required|integer|min:0',
+            'nama_penitip' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:penitips,email,' . $id . ',id_penitip',
+            'password' => 'sometimes|string|min:8',
+            'no_telp' => 'sometimes|string|max:15',
+            'nik' => 'sometimes|string|max:16|unique:penitips,nik,' . $id . ',id_penitip',
+            'saldo' => 'sometimes|numeric|min:0',
+            'poin' => 'sometimes|integer|min:0',
+            'akumulasi_rating' => 'sometimes|integer|min:0',
         ]);
 
         if (isset($validatedData['password'])) {
