@@ -39,7 +39,7 @@ class PembeliController
             'email' => $validatedData['email'],
             'no_telp' => $validatedData['no_telp'],
             'password' => $user->password,
-            'poin' => 0, // Default poin
+            'poin' => 0, 
         ]);
 
         return response()->json([
@@ -99,9 +99,16 @@ class PembeliController
         ]);
 
         if (isset($validatedData['password'])) {
-            $validatedData['password'] = Hash::make($validatedData['password']);
+            $hashedPassword = \Hash::make($validatedData['password']);
+            $validatedData['password'] = $hashedPassword;
+    
+            // Update password di tabel users
+            $user = \App\Models\User::find($pegawai->user_id);
+            if ($user) {
+                $user->password = $hashedPassword;
+                $user->save();
+            }
         }
-
         $pembeli->update($validatedData);
 
         return response()->json([

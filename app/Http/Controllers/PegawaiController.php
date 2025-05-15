@@ -82,18 +82,21 @@ class PegawaiController
         ]);
 
         if (isset($validatedData['password'])) {
-            $hashedPassword = \Hash::make($validatedData['password']);
-            $validatedData['password'] = $hashedPassword;
-    
-            // Update password di tabel users
-            $user = \App\Models\User::find($pegawai->user_id);
-            if ($user) {
-                $user->password = $hashedPassword;
-                $user->save();
-            }
+            $validatedData['password'] = Hash::make($validatedData['password']);
         }
 
         $pegawai->update($validatedData);
+
+        // Update juga pada tabel users jika ada
+        $user = $pegawai->user;
+        if ($user) {
+            $user->name = $pegawai->nama_pegawai;
+            $user->email = $pegawai->email;
+            if (isset($request->password)) {
+                $user->password = Hash::make($request->password);
+            }
+            $user->save();
+        }
 
         return response()->json([
             'message' => 'Pegawai updated successfully',
@@ -104,15 +107,20 @@ class PegawaiController
     public function destroy($id)
     {
         $pegawai = Pegawai::find($id);
-
+    
         if (!$pegawai) {
             return response()->json(['message' => 'Pegawai not found'], 404);
         }
-
+    
+        // Hapus user yang terkait terlebih dahulu
+        $pegawai->user()->delete();
+    
+        // Lalu hapus pegawainya
         $pegawai->delete();
-
-        return response()->json(['message' => 'Pegawai deleted successfully']);
+    
+        return response()->json(['message' => 'Pegawai dan user terkait berhasil dihapus']);
     }
+    
 
     public function getPegawaiLogin()
     {

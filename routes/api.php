@@ -13,8 +13,11 @@ use App\Http\Controllers\{
     RequestDonasiController,
     DonasiController,
     BarangController,
-    HistoryController
+    HistoryController,
+    ForgotPasswordController,
+    ResetPasswordController 
 };
+
 
 // Routes untuk umum
 Route::prefix('public')->group(function () {
@@ -34,6 +37,11 @@ Route::post('/register/organisasi', [OrganisasiController::class, 'register']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getPegawaiLogin', [PegawaiController::class, 'getPegawaiLogin']);
 });
+// Kirim link reset password ke email
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+
+// Reset password menggunakan token dari email
+Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 // Routes untuk admin (Pegawai dengan jabatan admin)
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
     Route::post('/pegawai', [PegawaiController::class, 'store']);

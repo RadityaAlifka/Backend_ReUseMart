@@ -87,9 +87,16 @@ class PenitipController
         ]);
 
         if (isset($validatedData['password'])) {
-            $validatedData['password'] = Hash::make($validatedData['password']);
+            $hashedPassword = \Hash::make($validatedData['password']);
+            $validatedData['password'] = $hashedPassword;
+    
+            // Update password di tabel users
+            $user = \App\Models\User::find($pegawai->user_id);
+            if ($user) {
+                $user->password = $hashedPassword;
+                $user->save();
+            }
         }
-
         $penitip->update($validatedData);
 
         return response()->json([
