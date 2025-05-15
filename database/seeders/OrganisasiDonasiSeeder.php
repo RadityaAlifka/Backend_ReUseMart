@@ -18,7 +18,7 @@ class OrganisasiDonasiSeeder extends Seeder
     {
         // Buat akun pengguna untuk organisasi pertama
         $user1 = User::create([
-            'email' => 'organisasiA@example.com',
+            'email' => 'organisasiA123@example.com',
             'password' => Hash::make('organisasi123'), // Password terenkripsi
             'level' => 'organisasi',
         ]);
@@ -35,7 +35,7 @@ class OrganisasiDonasiSeeder extends Seeder
 
         // Buat akun pengguna untuk organisasi kedua
         $user2 = User::create([
-            'email' => 'organisasiB@example.com',
+            'email' => 'organisasiB123@example.com',
             'password' => Hash::make('organisasi123'), // Password terenkripsi
             'level' => 'organisasi',
         ]);

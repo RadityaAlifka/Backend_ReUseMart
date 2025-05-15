@@ -17,8 +17,8 @@ class PenitipanBarangSeeder extends Seeder
     public function run()
     {
         // Ambil data penitip yang sudah ada
-        $penitip1 = Penitip::where('email', 'penitip1@example.com')->first();
-        $penitip2 = Penitip::where('email', 'penitip2@example.com')->first();
+        $penitip1 = Penitip::where('email', 'penitip123@example.com')->first();
+        $penitip2 = Penitip::where('email', 'penitip2123@example.com')->first();
 
         // Buat data penitipan untuk penitip pertama
         $penitipan1 = Penitipan::create([

@@ -86,8 +86,25 @@ class PenitipController
             'akumulasi_rating' => 'sometimes|integer|min:0',
         ]);
 
+        // Update email di tabel users jika berubah
+    if (isset($validatedData['email'])) {
+        $user = \App\Models\User::find($penitip->user_id);
+        if ($user) {
+            $user->email = $validatedData['email'];
+            $user->save();
+        }
+    }
+
+    // Update password di tabel users jika berubah
         if (isset($validatedData['password'])) {
-            $validatedData['password'] = Hash::make($validatedData['password']);
+            $hashedPassword = \Hash::make($validatedData['password']);
+            $validatedData['password'] = $hashedPassword;
+
+            $user = \App\Models\User::find($penitip->user_id);
+            if ($user) {
+                $user->password = $hashedPassword;
+                $user->save();
+            }
         }
     
         $pegawai->update($validatedData);
@@ -105,7 +122,7 @@ class PenitipController
         $penitip->update($validatedData);
 
         return response()->json([
-            'message' => 'Penitip updated successfully',
+            'message' => 'Organisasi updated successfully',
             'data' => $penitip
         ]);
     }
