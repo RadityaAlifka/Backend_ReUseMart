@@ -43,7 +43,7 @@ class OrganisasiController
             'alamat' => 'required|string',
             'email' => 'required|email|unique:users',
             'no_telp' => 'required|string|max:15',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ]);
 
         // Buat akun pengguna

@@ -33,7 +33,7 @@ class PenitipController
         $user = User::create([
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
-            'level' => 'penitip',
+            'level' => 'penjual',
         ]);
 
         // Buat data penitip terkait
@@ -87,15 +87,20 @@ class PenitipController
         ]);
 
         if (isset($validatedData['password'])) {
-            $hashedPassword = \Hash::make($validatedData['password']);
-            $validatedData['password'] = $hashedPassword;
+            $validatedData['password'] = Hash::make($validatedData['password']);
+        }
     
-            // Update password di tabel users
-            $user = \App\Models\User::find($pegawai->user_id);
-            if ($user) {
-                $user->password = $hashedPassword;
-                $user->save();
+        $pegawai->update($validatedData);
+    
+        // Update juga pada tabel users jika ada
+        $user = $penitip->user;
+        if ($user) {
+            $user->name = $penitip->nama_pegawai;
+            $user->email = $penitip->email;
+            if (isset($request->password)) {
+                $user->password = Hash::make($request->password);
             }
+            $user->save();
         }
         $penitip->update($validatedData);
 
