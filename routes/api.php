@@ -35,6 +35,7 @@ Route::post('/register/organisasi', [OrganisasiController::class, 'register']);
 Route::get('/donasi-history-by-organisasi', [HistoryController::class, 'donasiHistoryByOrganisasi']);
 // Routes untuk admin (Pegawai dengan jabatan admin)
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->group(function () {
     Route::post('/pegawai', [PegawaiController::class, 'store']);
     Route::put('/pegawai/{id}', [PegawaiController::class, 'update']);
     Route::delete('/pegawai/{id}', [PegawaiController::class, 'destroy']);
