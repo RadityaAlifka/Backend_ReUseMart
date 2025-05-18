@@ -95,3 +95,4 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin'])->
     Route::post('/donasi', [DonasiController::class, 'store']);
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
 });
+});
