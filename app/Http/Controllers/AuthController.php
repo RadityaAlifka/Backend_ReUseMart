@@ -22,7 +22,7 @@ class AuthController
             'password' => Hash::make($validated['password']),
             'level' => $validated['level'],
         ]);
-
+        
         // Return token
         return response()->json([
             'token' => $user->createToken('auth_token')->plainTextToken,

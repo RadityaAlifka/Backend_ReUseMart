@@ -15,9 +15,10 @@ class DonasiController
     }
     
     public function donasikanBarang(Request $request, $id)
-    {
+    {   
+        
         $barang = Barang::find($id);
-    
+        
         if (!$barang) {
             return response()->json(['message' => 'Barang not found'], 404);
         }
@@ -28,13 +29,14 @@ class DonasiController
     
         $validatedData = $request->validate([
             'id_organisasi' => 'required|exists:organisasis,id_organisasi',
+            'nama_penerima' => 'required|string|max:255',
         ]);
     
         // Buat entri baru di tabel donasi
         $donasi = Donasi::create([
             'id_organisasi' => $validatedData['id_organisasi'],
             'tanggal_donasi' => now(),
-            'nama_penerima' => 'Default Penerima',
+            'nama_penerima' => $validatedData['nama_penerima'],
         ]);
     
         // Perbarui barang dengan id_donasi yang baru dibuat

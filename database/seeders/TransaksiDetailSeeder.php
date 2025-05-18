@@ -16,7 +16,7 @@ class TransaksiDetailSeeder extends Seeder
     public function run(): void
     {
         // Ambil data pembeli
-        $pembeli = Pembeli::where('email', 'pembeli@example.com')->first();
+        $pembeli = Pembeli::where('email', 'pembeli123@example.com')->first();
 
         // Ambil barang
         $barang1 = Barang::where('nama_barang', 'Smartphone Samsung Galaxy')->first();

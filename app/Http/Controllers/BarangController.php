@@ -12,8 +12,21 @@ class BarangController
 {
     public function index()
     {
-        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])->get();
-        return response()->json($barang);
+        // Ambil semua barang dengan status 'tersedia'
+        $barang = Barang::where('status_barang', 'Tersedia')->get();
+
+        // Cek apakah data ditemukan
+        if ($barang->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada barang yang tersedia saat ini.'
+            ], 404);
+        }
+
+        // Jika ada data, kembalikan dengan response JSON
+        return response()->json([
+            'message' => 'Daftar barang tersedia',
+            'data' => $barang
+        ], 200);
     }
 
     public function store(Request $request)
@@ -151,4 +164,18 @@ class BarangController
 
         return response()->json(['message' => 'Barang deleted successfully']);
     }
+
+    public function barangMenungguDonasi()
+{
+    $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
+        ->where('status_barang', 'Menunggu Donasi')
+        ->get();
+
+    return response()->json([
+        'message' => 'Barang dengan status Menunggu Donasi',
+        'data' => $barang
+    ]);
+}
+
+
 }

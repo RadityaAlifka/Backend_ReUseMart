@@ -17,7 +17,7 @@ class PembeliSeeder extends Seeder
     {
         // Buat akun pengguna untuk pembeli
         $user = User::create([
-            'email' => 'pembeli@example.com',
+            'email' => 'pembeli123@example.com',
             'password' => Hash::make('pembeli123'), // Password terenkripsi
             'level' => 'pembeli',
         ]);
