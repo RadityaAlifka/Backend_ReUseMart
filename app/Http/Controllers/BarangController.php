@@ -135,16 +135,23 @@ class BarangController
         ]);
     }
     public function barangBergaransi()
-    {
-        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
-            ->where('tanggal_garansi', '>=', now()) // Filter barang dengan garansi yang masih berlaku
-            ->get();
+{
+    $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
+        ->where('tanggal_garansi', '>=', now())
+        ->get();
 
+    if ($barang->isEmpty()) {
         return response()->json([
-            'message' => 'Barang dengan garansi yang masih berlaku',
-            'data' => $barang
-        ]);
+            'message' => 'Tidak ada barang dengan garansi yang masih berlaku',
+            'data' => []
+        ], 404);
     }
+
+    return response()->json([
+        'message' => 'Barang dengan garansi yang masih berlaku',
+        'data' => $barang
+    ]);
+}
     public function destroy($id)
     {
         $barang = Barang::find($id);
