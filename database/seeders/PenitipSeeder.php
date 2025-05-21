@@ -19,7 +19,7 @@ class PenitipSeeder extends Seeder
     {
         // Buat akun user pertama
         $user1 = User::create([
-            'email' => 'penitip1@example.com',
+            'email' => 'penitip123@example.com',
             'password' => Hash::make('password123'),
             'level' => 'penjual',
         ]);
@@ -39,7 +39,7 @@ class PenitipSeeder extends Seeder
 
         // Buat akun user kedua
         $user2 = User::create([
-            'email' => 'penitip2@example.com',
+            'email' => 'penitip2123@example.com',
             'password' => Hash::make('password123'),
             'level' => 'penjual',
         ]);

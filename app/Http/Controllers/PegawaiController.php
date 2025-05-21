@@ -39,8 +39,8 @@ class PegawaiController
         $pegawai = Pegawai::create([
             'user_id' => $user->id,
             'id_jabatan' => $validatedData['id_jabatan'],
-            'nama_pegawai' => $validatedData['nama_pegawai'],
             'email' => $validatedData['email'],
+            'nama_pegawai' => $validatedData['nama_pegawai'],
             'no_telp' => $validatedData['no_telp'],
             'password' => $user->password,
             'komisi' => $validatedData['komisi'],
@@ -65,63 +65,64 @@ class PegawaiController
     }
 
     public function update(Request $request, $id)
-    {
-        $pegawai = Pegawai::find($id);
+{
+    $pegawai = Pegawai::find($id);
 
-        if (!$pegawai) {
-            return response()->json(['message' => 'Pegawai not found'], 404);
-        }
+    if (!$pegawai) {
+        return response()->json(['message' => 'Pegawai not found'], 404);
+    }
 
-        $validatedData = $request->validate([
-            'id_jabatan' => 'sometimes|required|exists:jabatans,id_jabatan',
-            'nama_pegawai' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:pegawais,email,' . $id . ',id_pegawai',
-            'no_telp' => 'sometimes|required|string|max:15',
-            'password' => 'sometimes|required|string|min:8',
-            'komisi' => 'sometimes|required|numeric|min:0',
-        ]);
+    $validatedData = $request->validate([
+        'nama_pegawai' => 'sometimes|required|string|max:255',
+        'email' => 'sometimes|required|email|unique:pegawais,email,' . $id . ',id_pegawai',
+        'no_telp' => 'sometimes|required|string|max:15',
+        'password' => 'sometimes|required|string|min:8',
+    ]);
 
-        if (isset($validatedData['password'])) {
-            $validatedData['password'] = Hash::make($validatedData['password']);
-        }
-
-        $pegawai->update($validatedData);
-
-        // Update juga pada tabel users jika ada
-        $user = $pegawai->user;
+    // Update email di tabel users jika berubah
+    if (isset($validatedData['email'])) {
+        $user = \App\Models\User::find($pegawai->user_id);
         if ($user) {
-            $user->name = $pegawai->nama_pegawai;
-            $user->email = $pegawai->email;
-            if (isset($request->password)) {
-                $user->password = Hash::make($request->password);
-            }
+            $user->email = $validatedData['email'];
             $user->save();
         }
-
-        return response()->json([
-            'message' => 'Pegawai updated successfully',
-            'data' => $pegawai->load('jabatan')
-        ]);
     }
+
+    if (isset($validatedData['password'])) {
+        $hashedPassword = \Hash::make($validatedData['password']);
+        $validatedData['password'] = $hashedPassword;
+
+        $user = \App\Models\User::find($pegawai->user_id);
+        if ($user) {
+            $user->password = $hashedPassword;
+            $user->save();
+        }
+    }
+
+    $pegawai->update($validatedData);
+
+    return response()->json([
+        'message' => 'Pegawai updated successfully',
+        'data' => $pegawai
+    ]);
+}
 
     public function destroy($id)
-    {
-        $pegawai = Pegawai::find($id);
-    
-        if (!$pegawai) {
-            return response()->json(['message' => 'Pegawai not found'], 404);
-        }
-    
-        // Hapus user yang terkait terlebih dahulu
-        $pegawai->user()->delete();
-    
-        // Lalu hapus pegawainya
-        $pegawai->delete();
-    
-        return response()->json(['message' => 'Pegawai dan user terkait berhasil dihapus']);
-    }
-    
+{
+    $pegawai = Pegawai::find($id);
 
+    if (!$pegawai) {
+        return response()->json(['message' => 'Pegawai not found'], 404);
+    }
+
+    // Hapus user yang terkait terlebih dahulu
+    $pegawai->user()->delete();
+
+    // Lalu hapus pegawainya
+    $pegawai->delete();
+
+    return response()->json(['message' => 'Pegawai dan user terkait berhasil dihapus']);
+}
     public function getPegawaiLogin()
     {
         $user = Auth::user();

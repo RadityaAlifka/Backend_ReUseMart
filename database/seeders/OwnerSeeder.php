@@ -7,29 +7,29 @@ use App\Models\User;
 use App\Models\Pegawai;
 use Illuminate\Support\Facades\Hash;
 
-class AdminSeeder extends Seeder
+class OwnerSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Buat akun pengguna untuk admin
+        // Buat akun pengguna untuk owner
         $user = User::create([
-            'email' => 'admin123@example.com',
-            'password' => Hash::make('admin123'), // Password terenkripsi
+            'email' => 'owner1@example.com',
+            'password' => Hash::make('owner123'), // Password terenkripsi
             'level' => 'pegawai',
         ]);
 
         // Buat data pegawai terkait
         Pegawai::create([
             'user_id' => $user->id,
-            'id_jabatan' => 1, // Pastikan ID jabatan admin ada di tabel jabatans
-            'nama_pegawai' => 'Admin',
+            'id_jabatan' => 6, // Pastikan ID jabatan owner ada di tabel jabatans
+            'nama_pegawai' => 'Owner',
             'email' => $user->email,
-            'no_telp' => '081234567890',
+            'no_telp' => '081234567891',
             'password' => $user->password, // Password terenkripsi
-            'komisi' => 0, // Admin biasanya tidak memiliki komisi
+            'komisi' => 0, // Owner biasanya tidak memiliki komisi
         ]);
     }
 }

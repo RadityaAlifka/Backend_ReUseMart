@@ -43,7 +43,7 @@ class OrganisasiController
             'alamat' => 'required|string',
             'email' => 'required|email|unique:users',
             'no_telp' => 'required|string|max:15',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ]);
 
         // Buat akun pengguna
@@ -57,10 +57,11 @@ class OrganisasiController
         $organisasi = Organisasi::create([
             'user_id' => $user->id,
             'nama_organisasi' => $validatedData['nama_organisasi'],
-            'alamat' => $validatedData['alamat'],
             'email' => $validatedData['email'],
-            'password' => $user->password,
+            'alamat' => $validatedData['alamat'],
             'no_telp' => $validatedData['no_telp'],
+            'password' => $user->password,
+
         ]);
 
         return response()->json([
@@ -84,73 +85,65 @@ class OrganisasiController
 
     // Update a specific organisasi
     public function update(Request $request, $id)
-    {
-        $pegawai = Pegawai::find($id);
-    
-        if (!$pegawai) {
-            return response()->json(['message' => 'Pegawai not found'], 404);
-        }
-    
-        $validatedData = $request->validate([
-            'id_jabatan' => 'sometimes|required|exists:jabatans,id_jabatan',
-            'nama_pegawai' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:pegawais,email,' . $id . ',id_pegawai',
-            'no_telp' => 'sometimes|required|string|max:15',
-            'password' => 'sometimes|required|string|min:8',
-            'komisi' => 'sometimes|required|numeric|min:0',
-        ]);
-    
-        if (isset($validatedData['password'])) {
-            $validatedData['password'] = Hash::make($validatedData['password']);
-        }
-    
-        $pegawai->update($validatedData);
-    
-        // Update juga pada tabel users jika ada
-        $user = $pegawai->user;
+{
+    $organisasi = Organisasi::find($id);
+
+    if (!$organisasi) {
+        return response()->json(['message' => 'Organisasi not found'], 404);
+    }
+
+    $validatedData = $request->validate([
+        'nama_organisasi' => 'sometimes|required|string|max:255',
+        'alamat' => 'sometimes|required|string',
+        'email' => 'sometimes|required|email|unique:organisasis,email,' . $id . ',id_organisasi',
+        'no_telp' => 'sometimes|required|string|max:15',
+        'password' => 'sometimes|required|string|min:8',
+    ]);
+
+    // Update email di tabel users jika berubah
+    if (isset($validatedData['email'])) {
+        $user = \App\Models\User::find($organisasi->user_id);
         if ($user) {
-            $user->name = $pegawai->nama_pegawai;
-            $user->email = $pegawai->email;
-            if (isset($request->password)) {
-                $user->password = Hash::make($request->password);
-            }
+            $user->email = $validatedData['email'];
             $user->save();
         }
-    
-        return response()->json([
-            'message' => 'Pegawai updated successfully',
-            'data' => $pegawai->load('jabatan')
-        ]);
     }
-    
-        public function destroy($id)
+
+    // Update password di tabel users jika berubah
+    if (isset($validatedData['password'])) {
+        $hashedPassword = \Hash::make($validatedData['password']);
+        $validatedData['password'] = $hashedPassword;
+
+        $user = \App\Models\User::find($organisasi->user_id);
+        if ($user) {
+            $user->password = $hashedPassword;
+            $user->save();
+        }
+    }
+
+    $organisasi->update($validatedData);
+
+    return response()->json([
+        'message' => 'Organisasi updated successfully',
+        'data' => $organisasi
+    ]);
+}
+
+
+    // Delete a specific organisasi
+    public function destroy($id)
     {
-        $pegawai = Pegawai::find($id);
-    
-        if (!$pegawai) {
-            return response()->json(['message' => 'Pegawai not found'], 404);
+        $organisasi = Organisasi::find($id);
+
+        if (!$organisasi) {
+            return response()->json(['message' => 'Organisasi not found'], 404);
         }
-    
-        // Hapus user yang terkait terlebih dahulu
-        $pegawai->user()->delete();
-    
-        // Lalu hapus pegawainya
-        $pegawai->delete();
-    
-        return response()->json(['message' => 'Pegawai dan user terkait berhasil dihapus']);
+
+        $organisasi->user()->delete();
+
+        $organisasi->delete();
+
+        return response()->json(['message' => 'Organisasi deleted successfully']);
     }
-        public function getPegawaiLogin()
-        {
-            $user = Auth::user();
-            if (!$user) {
-                return response()->json(['message' => 'Unauthorized'], 401);
-            }
-    
-            $pegawai = Pegawai::with('jabatan')->where('user_id', $user->id)->first();
-    
-            if (!$pegawai) {
-                return response()->json(['message' => 'Pegawai not found'], 404);
-            }
-            return response()->json($pegawai);
-        }
-    }
+
+}

@@ -91,11 +91,11 @@ class PembeliController
         }
 
         $validatedData = $request->validate([
-            'nama_pembeli' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:pembelis,email,' . $id . ',id_pembeli',
-            'no_telp' => 'sometimes|required|string|max:15',
-            'password' => 'sometimes|required|string|min:8',
-            'poin' => 'sometimes|required|integer|min:0',
+            'nama_pembeli' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:pembelis,email,' . $id . ',id_pembeli',
+            'no_telp' => 'sometimes|string|max:15',
+            'password' => 'sometimes|string|min:8',
+            'poin' => 'sometimes|integer|min:0',
         ]);
 
         if (isset($validatedData['password'])) {

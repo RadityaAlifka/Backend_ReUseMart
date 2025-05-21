@@ -19,7 +19,6 @@ class RequestDonasiController
     {
         $validatedData = $request->validate([
             'id_organisasi' => 'required|exists:organisasis,id_organisasi',
-            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
             'tanggal_request' => 'required|date',
             'detail_request' => 'required|string',
         ]);
@@ -55,7 +54,6 @@ class RequestDonasiController
 
         $validatedData = $request->validate([
             'id_organisasi' => 'sometimes|required|exists:organisasis,id_organisasi',
-            'id_pegawai' => 'sometimes|required|exists:pegawais,id_pegawai',
             'tanggal_request' => 'sometimes|required|date',
             'detail_request' => 'sometimes|required|string',
         ]);
@@ -81,4 +79,5 @@ class RequestDonasiController
 
         return response()->json(['message' => 'Request Donasi deleted successfully']);
     }
+    
 }
