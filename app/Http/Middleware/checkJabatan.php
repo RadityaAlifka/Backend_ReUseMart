@@ -17,8 +17,11 @@ class checkJabatan
     public function handle(Request $request, Closure $next, ...$jabatans): Response
     {
         $user = auth()->user();
-
+        \Log::info('LEVEL: ' . $user->level);
+        \Log::info('JABATAN: ' . ($user->pegawai->jabatan->nama_jabatan ?? 'null'));
+        \Log::info('PARAM: ' . json_encode($jabatans));
         // Pastikan user memiliki role 'pegawai'
+        
         if ($user->level !== 'pegawai') {
             return response()->json(['message' => 'Unauthorized, not a staff member'], 403);
         }

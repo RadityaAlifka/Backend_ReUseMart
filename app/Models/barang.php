@@ -65,6 +65,17 @@ class Barang extends Model
         'gambar1', // Menambahkan kolom gambar1
         'gambar2'  // Menambahkan kolom gambar2
     ];
+    protected $appends = ['gambar1_url', 'gambar2_url'];
+
+    public function getGambar1UrlAttribute()
+    {
+        return asset('storage/' . $this->gambar1);
+    }
+
+    public function getGambar2UrlAttribute()
+    {
+        return asset('storage/' . $this->gambar2);
+    }
 
     public function updateStatus($newStatus)
     {

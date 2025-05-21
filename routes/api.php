@@ -21,9 +21,10 @@ use App\Http\Controllers\{
 
 // Routes untuk umum
 Route::prefix('public')->group(function () {
+    Route::get('/barang/bergaransi', [BarangController::class, 'barangBergaransi']);
     Route::get('/barang', [BarangController::class, 'index']); // Menampilkan barang yang bisa dibeli
     Route::get('/barang/{id}', [BarangController::class, 'show']); // Menampilkan detail per barang
-    Route::get('/barang/bergaransi', [BarangController::class, 'barangBergaransi']);
+    Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
 });
 
 // Route untuk login
@@ -95,7 +96,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
 }); 
 
 // Routes untuk organisasi
-Route::middleware(['auth:sanctum', 'checkRole:organisasi,owner'])->group(function () {
+Route::middleware(['auth:sanctum', 'checkRole:organisasi,pegawai', 'checkJabatan:owner'])->group(function () {
     Route::post('/request-donasi', [RequestDonasiController::class, 'store']);
     Route::put('/request-donasi/{id}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{id}', [RequestDonasiController::class, 'destroy']);
@@ -109,7 +110,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
     Route::get('/donasi/history', [HistoryController::class, 'donasiHistoryByOrganisasi']);
     Route::put('/donasi/donasikan-barang/{id}', [DonasiController::class, 'donasikanBarang']);
-    Route::get('/organisasi', [OrganisasiController::class, 'index']);
+    //Route::get('/organisasi', [OrganisasiController::class, 'index']);
     Route::get('/barang/menunggu-donasi', [BarangController::class, 'barangMenungguDonasi']);
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
 });
