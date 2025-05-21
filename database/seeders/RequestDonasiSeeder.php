@@ -15,8 +15,10 @@ class RequestDonasiSeeder extends Seeder
     public function run(): void
     {
         // Ambil data organisasi
-        $organisasi1 = Organisasi::where('email', 'organisasiA123@example.com')->first();
-        $organisasi2 = Organisasi::where('email', 'organisasiB123@example.com')->first();
+
+        $organisasi1 = Organisasi::where('email', 'organisasiA@example.com')->first();
+        $organisasi2 = Organisasi::where('email', 'organisasiB@example.com')->first();
+
 
         // Ambil data pegawai (admin)
         $pegawai = Pegawai::where('email', 'admin123@example.com')->first();
@@ -24,7 +26,7 @@ class RequestDonasiSeeder extends Seeder
         // Buat request donasi untuk organisasi pertama
         RequestDonasi::create([
             'id_organisasi' => $organisasi1->id_organisasi,
-            'id_pegawai' => $pegawai->id_pegawai,
+
             'tanggal_request' => now(),
             'detail_request' => 'Permintaan donasi untuk bantuan sosial di wilayah Jakarta.',
         ]);
@@ -32,7 +34,7 @@ class RequestDonasiSeeder extends Seeder
         // Buat request donasi untuk organisasi kedua
         RequestDonasi::create([
             'id_organisasi' => $organisasi2->id_organisasi,
-            'id_pegawai' => $pegawai->id_pegawai,
+
             'tanggal_request' => now()->addDays(1),
             'detail_request' => 'Permintaan donasi untuk bantuan pendidikan di wilayah Bandung.',
         ]);
