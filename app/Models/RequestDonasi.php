@@ -37,7 +37,6 @@ class RequestDonasi extends Model
 
 	protected $fillable = [
 		'id_organisasi',
-		'id_pegawai',
 		'tanggal_request',
 		'detail_request'
 	];

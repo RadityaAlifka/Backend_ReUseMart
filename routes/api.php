@@ -13,8 +13,11 @@ use App\Http\Controllers\{
     RequestDonasiController,
     DonasiController,
     BarangController,
-    HistoryController
+    HistoryController,
+    ForgotPasswordController,
+    ResetPasswordController 
 };
+
 
 // Routes untuk umum
 Route::prefix('public')->group(function () {
@@ -37,6 +40,11 @@ Route::post('/register/organisasi', [OrganisasiController::class, 'register']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getPegawaiLogin', [PegawaiController::class, 'getPegawaiLogin']);
 });
+// Kirim link reset password ke email
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+
+// Reset password menggunakan token dari email
+Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 // Routes untuk admin (Pegawai dengan jabatan admin)
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin,owner'])->group(function () {
     Route::post('/pegawai', [PegawaiController::class, 'store']);
@@ -49,7 +57,6 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:admin,owne
     Route::put('/organisasi/{id}', [OrganisasiController::class, 'update']);
     Route::delete('/organisasi/{id}', [OrganisasiController::class, 'destroy']);
     Route::get('/organisasi', [OrganisasiController::class, 'index']);
-    Route::get('/organisasi/search', [OrganisasiController::class, 'search']);
 });
 
 // Routes untuk CS (Pegawai dengan jabatan CS)
@@ -85,7 +92,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::post('/pembeli/diskusi', [DiskusiController::class, 'store']);
     Route::get('/pembeli/diskusi', [DiskusiController::class, 'index']);
     Route::get('/pembeli/history', [HistoryController::class, 'index']);
-});
+}); 
 
 // Routes untuk organisasi
 Route::middleware(['auth:sanctum', 'checkRole:organisasi,pegawai', 'checkJabatan:owner'])->group(function () {

@@ -46,7 +46,7 @@ class Pembeli extends Model implements AuthenticatableContract
 	];
 
 	protected $fillable = [
-		
+		'user_id',
 		'nama_pembeli',
 		'email',
 		'no_telp',
