@@ -101,8 +101,12 @@ Route::middleware(['auth:sanctum', 'checkRole:organisasi,pegawai', 'checkJabatan
     Route::put('/request-donasi/{id}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{id}', [RequestDonasiController::class, 'destroy']);
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
+    Route::get('/request-donasi/{id}', [RequestDonasiController::class, 'show']);
+    Route::get('/get-org', [RequestDonasiController::class, 'myRequests']);
     Route::get('/request-donasi/search', [RequestDonasiController::class, 'search']);
     Route::get('/get-organisasi/{id}', [OrganisasiController::class, 'show']);
+    Route::get('/org/profil', [OrganisasiController::class, 'profil']);
+    Route::get('/org/user/{user_id}', [OrganisasiController::class, 'getOrganisasiByUserId']);
 });
 
 
@@ -115,12 +119,3 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
 });
 
-//tambahan
-Route::middleware(['auth:sanctum', 'checkRole:organisasi'])->group(function () {
-    Route::post('/post-org', [RequestDonasiController::class, 'store']);
-    Route::put('/put-org/{id}', [RequestDonasiController::class, 'update']);
-    Route::delete('/request-donasi/{id}', [RequestDonasiController::class, 'destroy']);
-    Route::get('/get-org', [RequestDonasiController::class, 'index']);
-    Route::get('/request-donasi/search', [RequestDonasiController::class, 'search']);
-    Route::get('/get-organisasi/{id}', [OrganisasiController::class, 'show']);
-});
