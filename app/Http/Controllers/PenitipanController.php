@@ -40,6 +40,7 @@ class PenitipanController
     {
         $validatedData = $request->validate([
             'id_penitip' => 'required|exists:penitips,id_penitip',
+            'id_pegawai' => 'required|exists:pegawais,id_pegawai',
             'tanggal_penitipan' => 'required|date',
             'batas_penitipan' => 'required|date|after_or_equal:tanggal_penitipan',
         ]);
@@ -75,6 +76,7 @@ class PenitipanController
 
         $validatedData = $request->validate([
             'id_penitip' => 'sometimes|required|exists:penitips,id_penitip',
+            'id_pegawai' => 'sometimes|required|exists:pegawais,id_pegawai',
             'tanggal_penitipan' => 'sometimes|required|date',
             'batas_penitipan' => 'sometimes|required|date|after_or_equal:tanggal_penitipan',
         ]);

@@ -31,14 +31,16 @@ class Penitipan extends Model
 
 	protected $casts = [
 		'id_penitip' => 'int',
+		'id_pegawai' => 'int',
 		'tanggal_penitipan' => 'datetime',
 		'batas_penitipan' => 'datetime'
 	];
 
 	protected $fillable = [
 		'id_penitip',
+		'id_pegawai',
 		'tanggal_penitipan',
-		'batas_penitipan'
+		'batas_penitipan',
 	];
 
 	public function penitip()
@@ -49,5 +51,9 @@ class Penitipan extends Model
 	public function barangs()
 	{
 		return $this->hasMany(Barang::class, 'id_penitipan');
+	}
+	public function pegawai()
+	{
+		return $this->belongsTo(Pegawai::class, 'id_pegawai');
 	}
 }
