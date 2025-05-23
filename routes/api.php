@@ -105,9 +105,9 @@ Route::middleware(['auth:sanctum', 'checkRole:organisasi,pegawai', 'checkJabatan
     Route::get('/get-organisasi/{id}', [OrganisasiController::class, 'show']);
 });
 
-// Routes untuk admin
+
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->group(function () {
-    Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
+    //Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
     Route::get('/donasi/history', [HistoryController::class, 'donasiHistoryByOrganisasi']);
     Route::put('/donasi/donasikan-barang/{id}', [DonasiController::class, 'donasikanBarang']);
     //Route::get('/organisasi', [OrganisasiController::class, 'index']);
