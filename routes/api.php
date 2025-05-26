@@ -15,7 +15,10 @@ use App\Http\Controllers\{
     BarangController,
     HistoryController,
     ForgotPasswordController,
-    ResetPasswordController 
+    ResetPasswordController,
+    PenitipanController,
+    PengambilanController,
+    TransaksiController
 };
 
 
@@ -79,6 +82,10 @@ Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
     Route::get('/penitip/search', [PenitipController::class, 'search']); // Penjual bisa mengakses
     Route::put('/penitip/{id}', [PenitipController::class, 'update']); // Penjual bisa mengakses
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Penjual bisa mengakses
+    Route::get('/barang-penitip', [PenitipController::class, 'getBarangPenitip']);
+    Route::put('/perpanjang/{id}', [PenitipanController::class, 'extendPenitipan']);
+    Route::post('/barang-penitip/pengambilan', [PengambilanController::class, 'store']);
+    Route::get('/barang-penitip/pengambilan/{id}', [PengambilanController::class, 'show']);
 });
 
 // Routes untuk pembeli
@@ -119,3 +126,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
 });
 
+
+// Routes untuk Pegawai Gudang
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gudang'])->group(function () {
+    Route::get('get-transaksi', [TransaksiController::class, 'index']);
+});
