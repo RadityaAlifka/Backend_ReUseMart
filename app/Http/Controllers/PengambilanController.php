@@ -15,8 +15,9 @@ class PengambilanController
     }
 
     // Store a new pengambilan
-    public function store(Request $request)
-    {
+   public function store(Request $request)
+{
+    try {
         $validatedData = $request->validate([
             'id_transaksi' => 'required|exists:transaksis,id_transaksi',
             'id_penitip' => 'required|exists:penitips,id_penitip',
@@ -32,7 +33,15 @@ class PengambilanController
             'message' => 'Pengambilan created successfully',
             'data' => $pengambilan->load(['pembeli', 'penitip', 'transaksi'])
         ], 201);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Gagal menyimpan pengambilan',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
     // Show a specific pengambilan
     public function show($id)

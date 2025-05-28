@@ -15,7 +15,10 @@ use App\Http\Controllers\{
     BarangController,
     HistoryController,
     ForgotPasswordController,
-    ResetPasswordController 
+    ResetPasswordController,
+    PenitipanController,
+    PengambilanController,
+    TransaksiController
 };
 
 
@@ -79,6 +82,10 @@ Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
     Route::get('/penitip/search', [PenitipController::class, 'search']); // Penjual bisa mengakses
     Route::put('/penitip/{id}', [PenitipController::class, 'update']); // Penjual bisa mengakses
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Penjual bisa mengakses
+    Route::get('/barang-penitip', [PenitipController::class, 'getBarangPenitip']);
+    Route::put('/perpanjang/{id}', [PenitipanController::class, 'extendPenitipan']);
+    Route::post('/barang-penitip/pengambilan', [PengambilanController::class, 'store']);
+    Route::get('/barang-penitip/pengambilan/{id}', [PengambilanController::class, 'show']);
 });
 
 // Routes untuk pembeli
@@ -101,8 +108,12 @@ Route::middleware(['auth:sanctum', 'checkRole:organisasi,pegawai', 'checkJabatan
     Route::put('/request-donasi/{id}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{id}', [RequestDonasiController::class, 'destroy']);
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
+    Route::get('/request-donasi/{id}', [RequestDonasiController::class, 'show']);
+    Route::get('/get-org', [RequestDonasiController::class, 'myRequests']);
     Route::get('/request-donasi/search', [RequestDonasiController::class, 'search']);
     Route::get('/get-organisasi/{id}', [OrganisasiController::class, 'show']);
+    Route::get('/org/profil', [OrganisasiController::class, 'profil']);
+    Route::get('/org/user/{user_id}', [OrganisasiController::class, 'getOrganisasiByUserId']);
 });
 
 
@@ -113,4 +124,10 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     //Route::get('/organisasi', [OrganisasiController::class, 'index']);
     Route::get('/barang/menunggu-donasi', [BarangController::class, 'barangMenungguDonasi']);
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
+});
+
+
+// Routes untuk Pegawai Gudang
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gudang'])->group(function () {
+    Route::get('get-transaksi', [TransaksiController::class, 'index']);
 });
