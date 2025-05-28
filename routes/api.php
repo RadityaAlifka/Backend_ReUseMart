@@ -162,19 +162,16 @@ Route::middleware('auth:sanctum')->prefix('pengiriman')->group(function () {
     Route::delete('/{id}', [PengirimanController::class, 'destroy']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    // Route CRUD standar
-    Route::get('/penitipans', [PenitipanController::class, 'index']);
-    Route::post('/penitipans', [PenitipanController::class, 'store']);
-    Route::get('/penitipans/{id}', [PenitipanController::class, 'show']);
-    Route::put('/penitipans/{id}', [PenitipanController::class, 'update']);
-    Route::delete('/penitipans/{id}', [PenitipanController::class, 'destroy']);
-    Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
-    // Route khusus untuk extend penitipan (perpanjangan masa titipan)
-    Route::post('/penitipans/{id}/extend', [PenitipanController::class, 'extendPenitipan']);
-});
-
 // Routes untuk Pegawai Gudang
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gudang'])->group(function () {
+    Route::post('/gudang/barang', [BarangController::class, 'store']);
+    Route::put('/gudang/barang/{id}', [BarangController::class, 'update']);
+    Route::delete('/gudang/barang/{id}', [BarangController::class, 'destroy']);
+    Route::get('/gudang/barang', [BarangController::class, 'showAllBarang']);
+    Route::put('/gudang/penitipan/{id}', [PenitipanController::class, 'update']);
+    Route::get('/gudang/penitipan', [PenitipanController::class, 'index']);
+    Route::get('/gudang/penitipan/{id}', [PenitipanController::class, 'show']);
+    Route::get('/gudang/penitip/search/{id}', [PenitipController::class, 'show']);
     Route::get('get-transaksi', [TransaksiController::class, 'index']);
 });
+
