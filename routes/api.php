@@ -20,9 +20,7 @@ use App\Http\Controllers\{
     PengirimanController,
     PenitipanController, 
     DetailTransaksiController,
-    PenitipanController,
-    PengambilanController,
-    TransaksiController
+    PengambilanController
 };
 
 
