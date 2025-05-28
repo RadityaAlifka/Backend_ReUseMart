@@ -100,4 +100,22 @@ class PenitipanController
 
         return response()->json(['message' => 'Penitipan deleted successfully']);
     }
+
+    public function getIdPenitip($id)
+{
+    $penitipan = Penitipan::find($id);
+
+    if (!$penitipan) {
+        return response()->json(['message' => 'Penitipan not found'], 404);
+    }
+
+    // Ambil id_penitip dari penitipan
+    $id_penitip = $penitipan->id_penitip;
+
+    return response()->json([
+        'id_penitip' => $id_penitip,
+    ]);
+}
+
+
 }

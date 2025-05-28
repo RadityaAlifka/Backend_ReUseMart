@@ -137,4 +137,28 @@ class PegawaiController
         }
         return response()->json($pegawai);
     }
+
+
+    public function getPegawaiCS()
+{
+    $jabatanCs = Jabatan::where('nama_jabatan', 'cs')->first();
+
+    if (!$jabatanCs) {
+        return response()->json(['message' => 'Jabatan CS tidak ditemukan'], 404);
+    }
+
+    $pegawais = Pegawai::where('id_jabatan', $jabatanCs->id_jabatan)->get();
+
+    if ($pegawais->isEmpty()) {
+        return response()->json(['message' => 'Tidak ada pegawai dengan jabatan CS'], 404);
+    }
+
+    return response()->json([
+        'message' => 'Berhasil mengambil pegawai dengan jabatan CS',
+        'data' => $pegawais
+    ]);
 }
+
+}
+
+
