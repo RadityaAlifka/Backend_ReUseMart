@@ -95,4 +95,21 @@ class AlamatController
 
         return response()->json(['message' => 'Alamat deleted successfully']);
     }
+
+
+public function getByPembeli($id_pembeli)
+{
+    $alamat = Alamat::where('id_pembeli', $id_pembeli)->get();
+
+    if ($alamat->isEmpty()) {
+        return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+    }
+
+    return response()->json([
+        'message' => 'Alamat retrieved successfully',
+        'data' => $alamat
+    ]);
 }
+
+}
+

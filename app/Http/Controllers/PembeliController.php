@@ -150,4 +150,17 @@ class PembeliController
             'pembeli' => $pembeli,
         ]);
     }
+
+       public function getByUserId($user_id)
+    {
+        $pembeli = Pembeli::where('user_id', $user_id)->first();
+
+        if (!$pembeli) {
+            return response()->json(['message' => 'Organisasi not found'], 404);
+        }
+
+        return response()->json($pembeli);
+    }
+
+    
 }

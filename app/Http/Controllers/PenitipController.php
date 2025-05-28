@@ -173,4 +173,15 @@ class PenitipController
     }
 
     
+    public function getByUserId($user_id)
+{
+    $penitip = Penitip::where('user_id', $user_id)->first();
+
+    if (!$penitip) {
+        return response()->json(['message' => 'Penitip not found'], 404);
+    }
+
+    return response()->json($penitip);
+}
+
 }
