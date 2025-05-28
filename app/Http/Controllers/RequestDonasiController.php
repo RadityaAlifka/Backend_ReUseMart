@@ -80,4 +80,29 @@ class RequestDonasiController
         return response()->json(['message' => 'Request Donasi deleted successfully']);
     }
     
+    // Menampilkan request donasi milik organisasi yang sedang login
+    public function myRequests(Request $request)
+    {
+        $user = $request->user();
+
+        // Pastikan user adalah organisasi
+        if ($user->level !== 'organisasi') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Ambil organisasi terkait user
+        $organisasi = $user->organisasi; // Pastikan relasi 'organisasi' ada di model User
+
+        if (!$organisasi) {
+            return response()->json(['message' => 'Organisasi not found'], 404);
+        }
+
+        // Ambil semua request donasi milik organisasi ini
+        $requests = RequestDonasi::with(['organisasi', 'pegawai'])
+            ->where('id_organisasi', $organisasi->id_organisasi)
+            ->get();
+
+        return response()->json($requests);
+    }
+
 }

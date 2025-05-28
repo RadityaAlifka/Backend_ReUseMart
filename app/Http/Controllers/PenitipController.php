@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Penitip;
+use App\Models\Penitipan;
 use App\Models\User;
 use App\Models\Barang;
 use Illuminate\Http\Request;
@@ -151,6 +152,26 @@ class PenitipController
 
         return response()->json($penitip);
     }
+
+    public function getBarangPenitip(Request $request)
+    {
+        $user = $request->user();
+
+        $penitip = Penitip::where('user_id', $user->id)->first();
+
+        if (!$penitip) {
+            return response()->json(['message' => 'Penitip not found'], 404);
+        }
+
+        $penitipanIds = $penitip->penitipans()->pluck('id_penitipan');
+
+        $barangs = Barang::with('penitipan') // ambil juga data penitipan
+            ->whereIn('id_penitipan', $penitipanIds)
+            ->get();
+
+        return response()->json($barangs);
+    }
+
     
     public function getByUserId($user_id)
 {

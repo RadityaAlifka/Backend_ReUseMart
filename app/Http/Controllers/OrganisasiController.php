@@ -146,4 +146,28 @@ class OrganisasiController
         return response()->json(['message' => 'Organisasi deleted successfully']);
     }
 
+    public function profil(Request $request)
+    {
+        $user = $request->user();
+
+        $organisasi = Organisasi::where('user_id', $user->id)->first();
+
+        if (!$organisasi) {
+            return response()->json(['message' => 'Organisasi not found'], 404);
+        }
+
+        return response()->json($organisasi);
+    }
+
+    public function getOrganisasiByUserId($user_id)
+    {
+        $organisasi = Organisasi::where('user_id', $user_id)->first();
+
+        if (!$organisasi) {
+            return response()->json(['message' => 'Organisasi not found'], 404);
+        }
+
+        return response()->json($organisasi);
+    }
+
 }

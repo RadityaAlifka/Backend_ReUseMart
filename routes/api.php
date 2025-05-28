@@ -20,14 +20,18 @@ use App\Http\Controllers\{
     PengirimanController,
     PenitipanController, 
     DetailTransaksiController,
+    PenitipanController,
+    PengambilanController,
+    TransaksiController
 };
 
 
 // Routes untuk umum
 Route::prefix('public')->group(function () {
+    Route::get('/barang/bergaransi', [BarangController::class, 'barangBergaransi']);
     Route::get('/barang', [BarangController::class, 'index']); // Menampilkan barang yang bisa dibeli
     Route::get('/barang/{id}', [BarangController::class, 'show']); // Menampilkan detail per barang
-    Route::get('/barang/bergaransi', [BarangController::class, 'barangBergaransi']);
+    Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
 });
 
 Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
@@ -87,6 +91,10 @@ Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
     Route::get('/penitip/search', [PenitipController::class, 'search']); // Penjual bisa mengakses
     Route::put('/penitip/{id}', [PenitipController::class, 'update']); // Penjual bisa mengakses
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Penjual bisa mengakses
+    Route::get('/barang-penitip', [PenitipController::class, 'getBarangPenitip']);
+    Route::put('/perpanjang/{id}', [PenitipanController::class, 'extendPenitipan']);
+    Route::post('/barang-penitip/pengambilan', [PengambilanController::class, 'store']);
+    Route::get('/barang-penitip/pengambilan/{id}', [PengambilanController::class, 'show']);
 });
 
 Route::get('/penitip/user/{user_id}', [PenitipController::class, 'getByUserId']);   
@@ -117,21 +125,25 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
 
 
 // Routes untuk organisasi
-Route::middleware(['auth:sanctum', 'checkRole:organisasi,owner'])->group(function () {
+Route::middleware(['auth:sanctum', 'checkRole:organisasi,pegawai', 'checkJabatan:owner'])->group(function () {
     Route::post('/request-donasi', [RequestDonasiController::class, 'store']);
     Route::put('/request-donasi/{id}', [RequestDonasiController::class, 'update']);
     Route::delete('/request-donasi/{id}', [RequestDonasiController::class, 'destroy']);
     Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
+    Route::get('/request-donasi/{id}', [RequestDonasiController::class, 'show']);
+    Route::get('/get-org', [RequestDonasiController::class, 'myRequests']);
     Route::get('/request-donasi/search', [RequestDonasiController::class, 'search']);
     Route::get('/get-organisasi/{id}', [OrganisasiController::class, 'show']);
+    Route::get('/org/profil', [OrganisasiController::class, 'profil']);
+    Route::get('/org/user/{user_id}', [OrganisasiController::class, 'getOrganisasiByUserId']);
 });
 
-// Routes untuk admin
+
 Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->group(function () {
-    Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
+    //Route::get('/request-donasi', [RequestDonasiController::class, 'index']);
     Route::get('/donasi/history', [HistoryController::class, 'donasiHistoryByOrganisasi']);
     Route::put('/donasi/donasikan-barang/{id}', [DonasiController::class, 'donasikanBarang']);
-    Route::get('/organisasi', [OrganisasiController::class, 'index']);
+    //Route::get('/organisasi', [OrganisasiController::class, 'index']);
     Route::get('/barang/menunggu-donasi', [BarangController::class, 'barangMenungguDonasi']);
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
 });
@@ -162,4 +174,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
     // Route khusus untuk extend penitipan (perpanjangan masa titipan)
     Route::post('/penitipans/{id}/extend', [PenitipanController::class, 'extendPenitipan']);
+});
+
+// Routes untuk Pegawai Gudang
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gudang'])->group(function () {
+    Route::get('get-transaksi', [TransaksiController::class, 'index']);
 });
