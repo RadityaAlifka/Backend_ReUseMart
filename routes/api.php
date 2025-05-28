@@ -178,3 +178,4 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('get-transaksi', [TransaksiController::class, 'index']);
 });
 
+Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
