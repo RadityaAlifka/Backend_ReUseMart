@@ -20,7 +20,9 @@ use App\Http\Controllers\{
     PengirimanController,
     PenitipanController, 
     DetailTransaksiController,
-    PengambilanController
+    PengambilanController, 
+    RatingController
+
 };
 
 
@@ -110,6 +112,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::post('/pembeli/diskusi', [DiskusiController::class, 'store']);
     Route::get('/pembeli/diskusi', [DiskusiController::class, 'index']);
     Route::get('/pembeli/history', [HistoryController::class, 'index']);
+    Route::post('/pembeli/rating', [RatingController::class, 'store']);
     Route::get('/pembeli/user/{userId}', [PembeliController::class, 'getByUserId']);
     Route::get('/alamat/pembeli/{id_pembeli}', [AlamatController::class, 'getByPembeli']);
     Route::post('/detailTransaksis', [DetailTransaksiController::class, 'store']);
@@ -175,3 +178,4 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('get-transaksi', [TransaksiController::class, 'index']);
 });
 
+Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
