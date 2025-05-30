@@ -81,4 +81,6 @@ class Pembeli extends Model implements AuthenticatableContract
 	public function user() {
         return $this->belongsTo(User::class);
     }
+
+	
 }
