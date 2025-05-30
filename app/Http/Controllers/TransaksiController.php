@@ -119,5 +119,9 @@ class TransaksiController
     ]);
 }
 
-
+    public function getAllTransaksiWithBarang()
+    {
+        $transaksis = Transaksi::with(['detailtransaksi.barang', 'pengambilans', 'pengirimen'])->get();
+        return response()->json($transaksis);
+    }
 }
