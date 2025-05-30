@@ -79,4 +79,17 @@ class RatingController
 
         return response()->json(['message' => 'Rating deleted successfully']);
     }
+    public function showByBarang($id_barang)
+    {
+        $ratings = Rating::with(['barang', 'pembeli'])
+                        ->where('id_barang', $id_barang)
+                        ->get();
+
+        if ($ratings->isEmpty()) {
+            return response()->json(['message' => 'Tidak ada rating untuk barang ini'], 404);
+        }
+
+        return response()->json($ratings);
+    }
+    
 }

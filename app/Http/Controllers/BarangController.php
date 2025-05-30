@@ -213,11 +213,36 @@ class BarangController
             ->where('status_barang', 'Menunggu Donasi')
             ->get();
 
+    return response()->json([
+        'message' => 'Barang dengan status Menunggu Donasi',
+        'data' => $barang
+    ]);
+}
+
+public function checkStokBarang($id)
+{
+    $barang = Barang::find($id);
+
+    if (!$barang) {
         return response()->json([
-            'message' => 'Barang dengan status Menunggu Donasi',
-            'data' => $barang
-        ]);
+            'message' => 'Barang tidak ditemukan'
+        ], 404);
     }
+
+    // Cek status barang, misal 'Tersedia' berarti stok masih ada
+    if ($barang->status_barang === 'Tersedia') {
+        return response()->json([
+            'message' => 'Barang tersedia',
+            'available' => true
+        ], 200);
+    } else {
+        return response()->json([
+            'message' => 'Barang tidak tersedia',
+            'available' => false
+        ], 200);
+    }
+}
+
 
     public function showAllBarang()
     {
@@ -234,6 +259,23 @@ class BarangController
             'message' => 'Daftar semua barang',
             'data' => $barang
         ], 200);
+    }
+
+    // Mengambil id_penitip berdasarkan id_barang
+    public function getIdPenitipByBarang($id_barang)
+    {
+        $barang = \App\Models\Barang::find($id_barang);
+        if (!$barang) {
+            return response()->json(['message' => 'Barang not found'], 404);
+        }
+
+        $penitipan = $barang->penitipan;
+        if (!$penitipan) {
+            return response()->json(['message' => 'Penitipan not found for this barang'], 404);
+        }
+
+        $id_penitip = $penitipan->id_penitip;
+        return response()->json(['id_penitip' => $id_penitip]);
     }
 
 }
