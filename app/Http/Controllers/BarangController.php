@@ -261,4 +261,21 @@ public function checkStokBarang($id)
         ], 200);
     }
 
+    // Mengambil id_penitip berdasarkan id_barang
+    public function getIdPenitipByBarang($id_barang)
+    {
+        $barang = \App\Models\Barang::find($id_barang);
+        if (!$barang) {
+            return response()->json(['message' => 'Barang not found'], 404);
+        }
+
+        $penitipan = $barang->penitipan;
+        if (!$penitipan) {
+            return response()->json(['message' => 'Penitipan not found for this barang'], 404);
+        }
+
+        $id_penitip = $penitipan->id_penitip;
+        return response()->json(['id_penitip' => $id_penitip]);
+    }
+
 }

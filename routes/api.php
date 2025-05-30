@@ -32,6 +32,8 @@ Route::prefix('public')->group(function () {
     Route::get('/barang', [BarangController::class, 'index']); // Menampilkan barang yang bisa dibeli
     Route::get('/barang/{id}', [BarangController::class, 'show']); // Menampilkan detail per barang
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
+    Route::get('/rating/akumulasi-rating/{id}', [PenitipController::class, 'getAkumulasiRating']);
+    Route::get('/barang/id-penitip/{id}', [BarangController::class, 'getIdPenitipByBarang']);
 });
 
 Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
@@ -93,7 +95,7 @@ Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Penjual bisa mengakses
     Route::get('/barang-penitip', [PenitipController::class, 'getBarangPenitip']);
     Route::put('/perpanjang/{id}', [PenitipanController::class, 'extendPenitipan']);
-    Route::post('/barang-penitip/pengambilan', [PengambilanController::class, 'store']);
+    Route::post('/barang-penitip/pengambilan', [PengambilanController::class, 'addPengambilanFromPenitip']);
     Route::get('/barang-penitip/pengambilan/{id}', [PengambilanController::class, 'show']);
 });
 
@@ -119,7 +121,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::get('/detailTransaksis/{id}', [DetailTransaksiController::class, 'show']);
     Route::put('/detailTransaksis/{id}', [DetailTransaksiController::class, 'update']);
     Route::delete('/detailTransaksis/{id}', [DetailTransaksiController::class, 'destroy']);
-
+    Route::get('/rating/barang/{id_barang}', [RatingController::class, 'showByBarang']);
 
 }); 
 
@@ -177,7 +179,9 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('/gudang/penitipan', [PenitipanController::class, 'index']);
     Route::get('/gudang/penitipan/{id}', [PenitipanController::class, 'show']);
     Route::get('/gudang/penitip/search/{id}', [PenitipController::class, 'show']);
-    Route::get('get-transaksi', [TransaksiController::class, 'index']);
+    Route::get('/get-transaksi', [TransaksiController::class, 'index']);
+    Route::get('/gudang/pengambilan', [PengambilanController::class, 'index']);
+    Route::put('/pengambilan/konfirmasi/{id}', [PengambilanController::class, 'konfirmasiPengambilan']);
 });
 
 
