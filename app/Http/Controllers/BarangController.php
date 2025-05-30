@@ -213,11 +213,36 @@ class BarangController
             ->where('status_barang', 'Menunggu Donasi')
             ->get();
 
+    return response()->json([
+        'message' => 'Barang dengan status Menunggu Donasi',
+        'data' => $barang
+    ]);
+}
+
+public function checkStokBarang($id)
+{
+    $barang = Barang::find($id);
+
+    if (!$barang) {
         return response()->json([
-            'message' => 'Barang dengan status Menunggu Donasi',
-            'data' => $barang
-        ]);
+            'message' => 'Barang tidak ditemukan'
+        ], 404);
     }
+
+    // Cek status barang, misal 'Tersedia' berarti stok masih ada
+    if ($barang->status_barang === 'Tersedia') {
+        return response()->json([
+            'message' => 'Barang tersedia',
+            'available' => true
+        ], 200);
+    } else {
+        return response()->json([
+            'message' => 'Barang tidak tersedia',
+            'available' => false
+        ], 200);
+    }
+}
+
 
     public function showAllBarang()
     {
