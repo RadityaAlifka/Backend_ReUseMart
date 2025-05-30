@@ -179,7 +179,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('/gudang/penitipan', [PenitipanController::class, 'index']);
     Route::get('/gudang/penitipan/{id}', [PenitipanController::class, 'show']);
     Route::get('/gudang/penitip/search/{id}', [PenitipController::class, 'show']);
-    Route::get('/get-transaksi', [TransaksiController::class, 'index']);
+    Route::get('/get-transaksi', [TransaksiController::class, 'getAllTransaksiWithBarang']);
     Route::get('/gudang/pengambilan', [PengambilanController::class, 'index']);
     Route::put('/pengambilan/konfirmasi/{id}', [PengambilanController::class, 'konfirmasiPengambilan']);
 });
