@@ -135,4 +135,18 @@ class TransaksiController
         $transaksis = Transaksi::with(['detailtransaksi.barang', 'pengambilans', 'pengirimen'])->get();
         return response()->json($transaksis);
     }
+
+    public function getTransaksiById($id)
+    {
+        $transaksi = Transaksi::with(['detailtransaksi.barang', 'pengambilans', 'pengirimen'])
+                        ->find($id); // atau ->where('id', $id)->first()
+
+        if (!$transaksi) {
+            return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
+        }
+
+        return response()->json($transaksi);
+    }
+
+
 }
