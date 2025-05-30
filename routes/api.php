@@ -213,4 +213,4 @@ Route::prefix('mobile')->group(function () {
         Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
     });
 });
->>>>>>>>> Temporary merge branch 2
+

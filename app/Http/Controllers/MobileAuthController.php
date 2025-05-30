@@ -38,22 +38,16 @@ class MobileAuthController
         
         // Handle notifikasi berdasarkan level user
         switch($user->level) {
-            case 'penitip':
+            case 'penjual':
                 $penitip = \App\Models\Penitip::where('user_id', $user->id)->first();
                 if ($penitip) {
-                    $this->notificationController->subscribePenitip($penitip->id_penitip, $request->fcm_token);
+                    \Log::info('Subscribe to topic: ' . 'penitip_' . $penitip->id_penitip . ' with token: ' . $request->fcm_token);
+                    $this->notificationController->subscribePenitipFromRequest($penitip->id_penitip, $request->fcm_token);
                     $fcmSubscribed = true;
                 }
                 break;
                 
-            case 'penjual':
-                $penitip = \App\Models\Penitip::where('user_id', $user->id)->first();
-                if ($penitip) {
-                    // Subscribe penjual ke notifikasi dengan topic khusus penjual
-                    $this->notificationController->subscribePenitip($penitip->id_penitip, $request->fcm_token);
-                    $fcmSubscribed = true;
-                }
-                break;
+            
         }
 
         return response()->json([

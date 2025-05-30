@@ -231,4 +231,24 @@ class NotificationController
             ], 500);
         }
     }
+
+    /**
+     * Subscribe device ke topic penitip_{id_penitip} dari parameter
+     */
+    public function subscribePenitipFromRequest($id_penitip, $token)
+    {
+        $topic = 'penitip_' . $id_penitip;
+        \Log::info('SubscribePenitipFromRequest: Subscribe to topic: ' . $topic . ' with token: ' . $token);
+        try {
+            $this->messaging->subscribeToTopic($topic, [$token]);
+            return response()->json([
+                'message' => 'Successfully subscribed to topic ' . $topic
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to subscribe to topic',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 } 
