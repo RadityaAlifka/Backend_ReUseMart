@@ -152,6 +152,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/transaksis/{id}', [TransaksiController::class, 'show']);
     Route::put('/transaksis/{id}', [TransaksiController::class, 'update']);
     Route::delete('/transaksis/{id}', [TransaksiController::class, 'destroy']);
+    Route::patch('/transaksis/{id}/verifikasi-bukti', [TransaksiController::class, 'verifikasiBukti']);
+
 });
 
 Route::middleware('auth:sanctum')->prefix('pengiriman')->group(function () {
@@ -174,4 +176,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('/gudang/penitip/search/{id}', [PenitipController::class, 'show']);
     Route::get('get-transaksi', [TransaksiController::class, 'index']);
 });
+
+route::get('/penitipan/{id}', [PenitipanController::class, 'show']);
+Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 

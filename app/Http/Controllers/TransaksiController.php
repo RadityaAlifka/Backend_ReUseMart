@@ -97,4 +97,27 @@ class TransaksiController
 
         return response()->json(['message' => 'Transaksi deleted successfully']);
     }
+
+    public function verifikasiBukti(Request $request, $id)
+{
+    $transaksi = Transaksi::find($id);
+
+    if (!$transaksi) {
+        return response()->json(['message' => 'Transaksi tidak ditemukan'], 404);
+    }
+
+    $validatedData = $request->validate([
+        'status_bukti' => 'required|in:pending,valid,tidak valid',
+    ]);
+
+    $transaksi->status_bukti = $validatedData['status_bukti'];
+    $transaksi->save();
+
+    return response()->json([
+        'message' => 'Status verifikasi bukti pembayaran berhasil diperbarui',
+        'data' => $transaksi,
+    ]);
+}
+
+
 }
