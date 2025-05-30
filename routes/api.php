@@ -32,6 +32,8 @@ Route::prefix('public')->group(function () {
     Route::get('/barang', [BarangController::class, 'index']); // Menampilkan barang yang bisa dibeli
     Route::get('/barang/{id}', [BarangController::class, 'show']); // Menampilkan detail per barang
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
+    Route::get('/rating/akumulasi-rating/{id}', [PenitipController::class, 'getAkumulasiRating']);
+    Route::get('/barang/id-penitip/{id}', [BarangController::class, 'getIdPenitipByBarang']);
 });
 
 Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
@@ -119,7 +121,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::get('/detailTransaksis/{id}', [DetailTransaksiController::class, 'show']);
     Route::put('/detailTransaksis/{id}', [DetailTransaksiController::class, 'update']);
     Route::delete('/detailTransaksis/{id}', [DetailTransaksiController::class, 'destroy']);
-
+    Route::get('/rating/barang/{id_barang}', [RatingController::class, 'showByBarang']);
 
 }); 
 
