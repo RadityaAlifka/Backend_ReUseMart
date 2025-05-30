@@ -188,12 +188,12 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
 
 });
 
+<<<<<<<<< Temporary merge branch 1
 
 
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
-Route::get('/pegawai/kurir', [PegawaiController::class, 'getKurir']);
 
 // Notification Routes
 Route::prefix('notifications')->group(function () {
@@ -216,3 +216,4 @@ Route::prefix('mobile')->group(function () {
         Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
     });
 });
+>>>>>>>>> Temporary merge branch 2
