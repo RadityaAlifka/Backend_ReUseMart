@@ -188,9 +188,6 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
 
 });
 
-<<<<<<<<< Temporary merge branch 1
-
-
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
