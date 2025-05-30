@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
+use App\Models\Pembeli;
 
 class TransaksiController 
 {
@@ -25,6 +26,7 @@ class TransaksiController
         'diskon_poin' => 'nullable|numeric|min:0',
         'bukti_pembayaran' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         'status_pembayaran' => 'required|string|max:50',
+        'total_harga' => 'required|numeric|min:0',
     ]);
 
     // Jika ada file bukti_pembayaran, simpan file dan update data
@@ -38,6 +40,14 @@ class TransaksiController
     }
 
     $transaksi = Transaksi::create($validatedData);
+
+    if (isset($validatedData['diskon_poin']) && $validatedData['diskon_poin'] > 0) {
+        $pembeli = Pembeli::find($validatedData['id_pembeli']);
+        if ($pembeli) {
+            $pembeli->poin = max(0, $pembeli->poin - $validatedData['diskon_poin']);
+            $pembeli->save();
+        }
+    }
 
     return response()->json([
         'message' => 'Transaksi created successfully',
@@ -74,6 +84,7 @@ class TransaksiController
             'diskon_poin' => 'nullable|numeric|min:0',
             'bukti_pembayaran' => 'nullable|string|max:255',
             'status_pembayaran' => 'sometimes|required|string|max:50',
+            'total_harga' => 'sometimes|required|numeric|min:0',
         ]);
 
         $transaksi->update($validatedData);

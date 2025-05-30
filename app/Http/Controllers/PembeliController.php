@@ -110,6 +110,7 @@ class PembeliController
             }
         }
         $pembeli->update($validatedData);
+        
 
         return response()->json([
             'message' => 'Pembeli updated successfully',

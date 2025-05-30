@@ -159,6 +159,20 @@ class PegawaiController
     ]);
 }
 
+public function getKurir()
+{
+    $kurir = Pegawai::whereHas('jabatan', function ($query) {
+        $query->where('nama_jabatan', 'kurir');
+    })->with('jabatan')->get();
+
+    return response()->json([
+        'message' => 'Berhasil mengambil pegawai dengan jabatan Kurir',
+        'data' => $kurir
+    ]);
+}
+
+
+
 }
 
 
