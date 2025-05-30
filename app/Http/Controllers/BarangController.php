@@ -8,6 +8,7 @@ use App\Models\Pegawai;
 use App\Models\Penitipan;
 use App\Models\Donasi;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class BarangController 
 {
@@ -32,71 +33,75 @@ class BarangController
 
     public function store(Request $request)
     {
-        // Validasi input
-        $validatedData = $request->validate([
-            'id_kategori'      => 'required|exists:kategori_barangs,id_kategori',
-            'id_penitip'       => 'required|exists:penitips,id_penitip',
-            'id_pegawai'       => 'required|exists:pegawais,id_pegawai',
-            'nama_barang'      => 'required|string|max:255',
-            'deskripsi_barang' => 'required|string',
-            'garansi'          => 'nullable|string|max:255',
-            'tanggal_garansi'  => 'nullable|date',
-            'harga'            => 'required|numeric|min:0',
-            'status_barang'    => 'required|string|max:50',
-            'berat'            => 'required|numeric|min:0',
-            'gambar1'          => 'required|file|image|mimes:jpeg,png,jpg|max:2048',
-            'gambar2'          => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
+        $validated = $request->validate([
+            'barangs' => 'required|array|min:1',
+            'barangs.*.id_kategori' => 'required|exists:kategori_barangs,id_kategori',
+            'barangs.*.id_penitip' => 'required|exists:penitips,id_penitip',
+            'barangs.*.id_pegawai' => 'required|exists:pegawais,id_pegawai',
+            'barangs.*.nama_barang' => 'required|string|max:255',
+            'barangs.*.deskripsi_barang' => 'required|string',
+            'barangs.*.garansi' => 'nullable|string|max:255',
+            'barangs.*.tanggal_garansi' => 'nullable|date',
+            'barangs.*.harga' => 'required|numeric|min:0',
+            'barangs.*.status_barang' => 'required|string|max:50',
+            'barangs.*.berat' => 'required|numeric|min:0',
         ]);
 
-        // Buat penitipan otomatis
-        $now = Carbon::now();
+        $now = now();
+        $createdBarangs = [];
+
+        // Ambil data penitipan dari barang pertama
+        $firstBarang = $validated['barangs'][0];
+
+        // Buat penitipan baru satu kali
         $penitipan = Penitipan::create([
-            'id_penitip'         => $validatedData['id_penitip'],
-            'id_pegawai'        => $validatedData['id_pegawai'],
-            'tanggal_penitipan'  => $now,
-            'batas_penitipan'    => $now->copy()->addDays(30),
+            'id_penitip' => $firstBarang['id_penitip'],
+            'id_pegawai' => $firstBarang['id_pegawai'],
+            'tanggal_penitipan' => $now->toDateString(),
+            'batas_penitipan' => $now->copy()->addDays(30),
         ]);
 
-        // Proses upload gambar1
-        if ($request->hasFile('gambar1')) {
-            $gambar1Path = $request->file('gambar1')->store('barang', 'public');
-            $validatedData['gambar1'] = $gambar1Path;
+        // Loop dan simpan semua barang
+        foreach ($validated['barangs'] as $index => $barangData) {
+            $gambar1Key = "gambar1_$index";
+            $gambar2Key = "gambar2_$index";
+
+            $gambar1Path = null;
+            $gambar2Path = null;
+
+            if ($request->hasFile($gambar1Key)) {
+                $gambar1Path = $request->file($gambar1Key)->store('image/barang', 'public');
+            }
+
+            if ($request->hasFile($gambar2Key)) {
+                $gambar2Path = $request->file($gambar2Key)->store('image/barang', 'public');
+            }
+
+            $barang = Barang::create([
+                'id_kategori'      => $barangData['id_kategori'],
+                'id_penitipan'     => $penitipan->id_penitipan,
+                'id_donasi'        => $barangData['id_donasi'] ?? null,
+                'nama_barang'      => $barangData['nama_barang'],
+                'deskripsi_barang' => $barangData['deskripsi_barang'],
+                'garansi'          => $barangData['garansi'] ?? null,
+                'tanggal_garansi'  => $barangData['tanggal_garansi'] ?? null,
+                'harga'            => $barangData['harga'],
+                'status_barang'    => $barangData['status_barang'],
+                'berat'            => $barangData['berat'],
+                'tanggal_keluar'   => null,
+                'gambar1'          => $gambar1Path,
+                'gambar2'          => $gambar2Path,
+            ]);
+
+            $createdBarangs[] = $barang->fresh();
         }
-
-        // Proses upload gambar2 (jika ada)
-        if ($request->hasFile('gambar2')) {
-            $gambar2Path = $request->file('gambar2')->store('barang', 'public');
-            $validatedData['gambar2'] = $gambar2Path;
-        } else {
-            $validatedData['gambar2'] = null;
-        }
-
-        // Set id_penitipan hasil create penitipan
-        $validatedData['id_penitipan'] = $penitipan->id_penitipan;
-
-        // Simpan data barang
-        $barang = Barang::create([
-            'id_kategori'      => $validatedData['id_kategori'],
-            'id_penitipan'     => $validatedData['id_penitipan'],
-            'id_donasi'        => $validatedData['id_donasi'] ?? null,
-            'nama_barang'      => $validatedData['nama_barang'],
-            'deskripsi_barang' => $validatedData['deskripsi_barang'],
-            'garansi'          => $validatedData['garansi'],
-            'tanggal_garansi'  => $validatedData['tanggal_garansi'],
-            'harga'            => $validatedData['harga'],
-            'status_barang'    => $validatedData['status_barang'],
-            'berat'            => $validatedData['berat'],
-            'tanggal_keluar'   => null,
-            'gambar1'          => $gambar1Path,
-            'gambar2'          => $gambar2Path,
-        ]);
 
         return response()->json([
-            'message' => 'Barang berhasil dititipkan',
-            'data'    => $barang->fresh()
+            'message' => 'Semua barang berhasil dititipkan',
+            'penitipan' => $penitipan,
+            'data' => $createdBarangs
         ], 201);
     }
-
     public function show($id)
     {
         $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])->find($id);
@@ -203,10 +208,10 @@ class BarangController
     }
 
     public function barangMenungguDonasi()
-{
-    $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
-        ->where('status_barang', 'Menunggu Donasi')
-        ->get();
+    {
+        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
+            ->where('status_barang', 'Menunggu Donasi')
+            ->get();
 
     return response()->json([
         'message' => 'Barang dengan status Menunggu Donasi',
@@ -239,5 +244,21 @@ public function checkStokBarang($id)
 }
 
 
+    public function showAllBarang()
+    {
+
+        $barang = Barang::all();
+        if ($barang->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada barang yang tersedia saat ini.'
+            ], 404);
+        }
+
+        // Jika ada data, kembalikan dengan response JSON
+        return response()->json([
+            'message' => 'Daftar semua barang',
+            'data' => $barang
+        ], 200);
+    }
 
 }

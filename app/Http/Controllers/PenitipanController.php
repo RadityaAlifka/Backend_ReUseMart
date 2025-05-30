@@ -103,7 +103,7 @@ class PenitipanController
         return response()->json(['message' => 'Penitipan deleted successfully']);
     }
 
-    public function getIdPenitip($id)
+public function getIdPenitip($id)
 {
     $penitipan = Penitipan::find($id);
 
