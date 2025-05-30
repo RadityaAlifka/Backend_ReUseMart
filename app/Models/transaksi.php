@@ -47,7 +47,8 @@ class Transaksi extends Model
 		'tgl_lunas',
 		'diskon_poin',
 		'bukti_pembayaran',
-		'status_pembayaran'
+		'status_pembayaran',
+		'total_harga',
 	];
 	public function pembeli()
 	{
