@@ -35,6 +35,7 @@ Route::prefix('public')->group(function () {
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
     Route::get('/rating/akumulasi-rating/{id}', [PenitipController::class, 'getAkumulasiRating']);
     Route::get('/barang/id-penitip/{id}', [BarangController::class, 'getIdPenitipByBarang']);
+    Route::get('/barang/kategori/{id_kategori}', [BarangController::class, 'filterBarangPerKategori']);
 });
 
 Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
@@ -213,4 +214,5 @@ Route::prefix('mobile')->group(function () {
         Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
     });
 });
+
 
