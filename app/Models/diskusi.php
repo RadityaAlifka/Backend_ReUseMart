@@ -25,36 +25,45 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Diskusi extends Model
 {
-	protected $table = 'diskusis';
-	public $incrementing = false;
-	public $timestamps = false;
+    protected $table = 'diskusis';
 
-	protected $casts = [
-		'id_pembeli' => 'int',
-		'id_pegawai' => 'int',
-		'id_barang' => 'int'
-	];
+    // Tambahkan ini untuk beri tahu primary key-nya
+    protected $primaryKey = 'id_diskusi';
 
-	protected $fillable = [
-		'id_pembeli',
-		'id_pegawai',
-		'detail_diskusi',
-		'id_barang',
-		'reply'
-	];
+    // Jika primary key auto increment atau tidak
+    public $incrementing = true;
 
-	public function barang()
-	{
-		return $this->belongsTo(Barang::class, 'id_barang');
-	}
+    public $timestamps = false;
 
-	public function pegawai()
-	{
-		return $this->belongsTo(Pegawai::class, 'id_pegawai');
-	}
+    protected $casts = [
+        'id_pembeli' => 'int',
+        'id_pegawai' => 'int',
+        'id_barang' => 'int',
+        'id_diskusi' => 'int',  // tambahkan ini supaya casting ke int juga
+    ];
 
-	public function pembeli()
-	{
-		return $this->belongsTo(Pembeli::class, 'id_pembeli');
-	}
+    protected $fillable = [
+        'id_pembeli',
+        'id_pegawai',
+        'detail_diskusi',
+        'id_barang',
+        'reply'
+    ];
+
+    // relasi seperti sebelumnya
+    public function barang()
+    {
+        return $this->belongsTo(Barang::class, 'id_barang');
+    }
+
+    public function pegawai()
+    {
+        return $this->belongsTo(Pegawai::class, 'id_pegawai');
+    }
+
+    public function pembeli()
+    {
+        return $this->belongsTo(Pembeli::class, 'id_pembeli');
+    }
 }
+

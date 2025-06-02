@@ -38,7 +38,7 @@ Route::prefix('public')->group(function () {
     Route::get('/barang/kategori/{id_kategori}', [BarangController::class, 'filterBarangPerKategori']);
 });
 
-Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
+
 
 // Route untuk login
 Route::post('/login', [AuthController::class, 'login']);
@@ -81,9 +81,11 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
     Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']);
     Route::get('/cs/penitip', [PenitipController::class, 'index']);
     Route::get('/penitip/search', [PenitipController::class, 'search']);
-    Route::post('/diskusi', [DiskusiController::class, 'store']);
-    Route::get('/diskusi', [DiskusiController::class, 'index']);
-    Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']); // Penjual bisa mengakses
+    Route::put('/diskusi/{id}', [DiskusiController::class, 'update']);
+    Route::get('/cs/diskusi', [DiskusiController::class, 'index']);
+    Route::delete('/penitip/{id}', [PenitipController::class, 'de   stroy']);
+    Route::get('/cs/pegawai', [PegawaiController::class,'getPegawaiCSFromToken']);
+    
 });// Route
 // 
 // 
