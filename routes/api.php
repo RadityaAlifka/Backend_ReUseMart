@@ -196,6 +196,15 @@ Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
 
+Route::prefix('pengambilan')->group(function () {
+    Route::get('/', [PengambilanController::class, 'index']);
+    Route::get('/{id}', [PengambilanController::class, 'show']);
+    Route::post('/', [PengambilanController::class, 'store']);
+    Route::put('/{id}', [PengambilanController::class, 'update']);
+    Route::delete('/{id}', [PengambilanController::class, 'destroy']);
+});
+
+
 // Notification Routes
 Route::prefix('notifications')->group(function () {
     Route::post('/device', [NotificationController::class, 'sendToDevice']);

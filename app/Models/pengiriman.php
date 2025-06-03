@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  * 
  * @property Pegawai $pegawai
  * @property Transaksi $transaksi
+ * @Property Alamat $alamat
  *
  * @package App\Models
  */
@@ -40,6 +41,7 @@ class Pengiriman extends Model
 	protected $fillable = [
 		'id_transaksi',
 		'id_pegawai',
+		'id_alamat',
 		'tanggal_pengiriman',
 		'status_pengiriman',
 		'ongkir'
@@ -53,5 +55,10 @@ class Pengiriman extends Model
 	public function transaksi()
 	{
 		return $this->belongsTo(Transaksi::class, 'id_transaksi');
+	}
+
+	public function alamat() 
+	{
+		return $this->belongsTo(Alamat::class, 'id_alamat');
 	}
 }
