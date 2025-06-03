@@ -15,11 +15,12 @@ class PengirimanController
     }
 
     // Store a new pengiriman
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $validatedData = $request->validate([
             'id_transaksi' => 'required|exists:transaksis,id_transaksi',
             'id_pegawai' => 'required|exists:pegawais,id_pegawai',
+            'id_alamat' => 'required|exists:alamats,id_alamat', // Tambah validasi id_alamat
             'tanggal_pengiriman' => 'required|date',
             'status_pengiriman' => 'required|string|max:50',
             'ongkir' => 'required|numeric|min:0',
@@ -46,7 +47,7 @@ class PengirimanController
     }
 
     // Update a specific pengiriman
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $pengiriman = Pengiriman::find($id);
 
@@ -57,6 +58,7 @@ class PengirimanController
         $validatedData = $request->validate([
             'id_transaksi' => 'sometimes|required|exists:transaksis,id_transaksi',
             'id_pegawai' => 'sometimes|required|exists:pegawais,id_pegawai',
+            'id_alamat' => 'sometimes|required|exists:alamats,id_alamat', // Tambah validasi id_alamat
             'tanggal_pengiriman' => 'sometimes|required|date',
             'status_pengiriman' => 'sometimes|required|string|max:50',
             'ongkir' => 'sometimes|required|numeric|min:0',
