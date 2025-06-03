@@ -278,4 +278,25 @@ public function checkStokBarang($id)
         return response()->json(['id_penitip' => $id_penitip]);
     }
 
+    // Filter barang berdasarkan kategori
+    public function filterBarangPerKategori($id_kategori)
+    {
+        $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
+            ->where('id_kategori', $id_kategori)
+            ->where('status_barang', 'tersedia')
+            ->get();
+
+        if ($barang->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada barang pada kategori ini',
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Barang pada kategori',
+            'data' => $barang
+        ]);
+    }
+
 }
