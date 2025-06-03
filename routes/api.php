@@ -124,7 +124,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::put('/detailTransaksis/{id}', [DetailTransaksiController::class, 'update']);
     Route::delete('/detailTransaksis/{id}', [DetailTransaksiController::class, 'destroy']);
     Route::get('/rating/barang/{id_barang}', [RatingController::class, 'showByBarang']);
-    
+    Route::get('/kurir/pegawai', [PegawaiController::class, 'getKurir']);
 
 }); 
 
@@ -194,6 +194,6 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
-Route::get('/pegawai/kurir', [PegawaiController::class, 'getKurir']);
+
 
 
