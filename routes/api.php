@@ -21,8 +21,9 @@ use App\Http\Controllers\{
     PenitipanController, 
     DetailTransaksiController,
     PengambilanController, 
-    RatingController
-
+    RatingController,
+    NotificationController,
+    MobileAuthController
 };
 
 
@@ -34,9 +35,10 @@ Route::prefix('public')->group(function () {
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
     Route::get('/rating/akumulasi-rating/{id}', [PenitipController::class, 'getAkumulasiRating']);
     Route::get('/barang/id-penitip/{id}', [BarangController::class, 'getIdPenitipByBarang']);
+    Route::get('/barang/kategori/{id_kategori}', [BarangController::class, 'filterBarangPerKategori']);
 });
 
-Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
+
 
 // Route untuk login
 Route::post('/login', [AuthController::class, 'login']);
@@ -79,9 +81,11 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
     Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']);
     Route::get('/cs/penitip', [PenitipController::class, 'index']);
     Route::get('/penitip/search', [PenitipController::class, 'search']);
-    Route::post('/diskusi', [DiskusiController::class, 'store']);
-    Route::get('/diskusi', [DiskusiController::class, 'index']);
-    Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']); // Penjual bisa mengakses
+    Route::put('/diskusi/{id}', [DiskusiController::class, 'update']);
+    Route::get('/cs/diskusi', [DiskusiController::class, 'index']);
+    Route::delete('/penitip/{id}', [PenitipController::class, 'de   stroy']);
+    Route::get('/cs/pegawai', [PegawaiController::class,'getPegawaiCSFromToken']);
+    
 });// Route
 // 
 // 
@@ -92,7 +96,7 @@ Route::middleware(['auth:sanctum', 'checkRole:penjual'])->group(function () {
     Route::get('/penitip/profil', [PenitipController::class, 'profil']);
     Route::get('/penitip/search', [PenitipController::class, 'search']); // Penjual bisa mengakses
     Route::put('/penitip/{id}', [PenitipController::class, 'update']); // Penjual bisa mengakses
-    Route::get('/diskusi', [DiskusiController::class, 'index']); // Penjual bisa mengakses
+    Route::get('/diskusi', [DiskusiController::class, 'index']); // Penjual bisa mengakses
     Route::get('/barang-penitip', [PenitipController::class, 'getBarangPenitip']);
     Route::put('/perpanjang/{id}', [PenitipanController::class, 'extendPenitipan']);
     Route::post('/barang-penitip/pengambilan', [PengambilanController::class, 'addPengambilanFromPenitip']);
@@ -187,11 +191,30 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
 
 });
 
-
-
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
-Route::get('/pegawai/kurir', [PegawaiController::class, 'getKurir']);
+
+// Notification Routes
+Route::prefix('notifications')->group(function () {
+    Route::post('/device', [NotificationController::class, 'sendToDevice']);
+    Route::post('/topic', [NotificationController::class, 'sendToTopic']);
+    Route::post('/topic/subscribe', [NotificationController::class, 'subscribeToTopic']);
+    Route::post('/topic/unsubscribe', [NotificationController::class, 'unsubscribeFromTopic']);
+    
+    // Notifikasi masa titip
+    Route::post('/check-h3', [NotificationController::class, 'sendH3Notification']);
+    Route::post('/check-hari-h', [NotificationController::class, 'sendHariHNotification']);
+    Route::post('/subscribe-penitip/{id_penitip}', [NotificationController::class, 'subscribePenitip']);
+});
+
+// Mobile Auth Routes
+Route::prefix('mobile')->group(function () {
+    Route::post('/login', [MobileAuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [MobileAuthController::class, 'logout']);
+        Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
+    });
+});
 
 

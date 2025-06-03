@@ -139,25 +139,38 @@ class PegawaiController
     }
 
 
-    public function getPegawaiCS()
+   public function getPegawaiCSFromToken(Request $request)
 {
-    $jabatanCs = Jabatan::where('nama_jabatan', 'cs')->first();
+    // Misal kamu menggunakan Laravel Sanctum atau JWT, ambil user dari token
+    $user = $request->user(); // user yang sudah terautentikasi dari token
 
+    if (!$user) {
+        return response()->json(['message' => 'User tidak ditemukan dari token'], 401);
+    }
+
+    // Cari jabatan CS dulu
+    $jabatanCs = Jabatan::where('nama_jabatan', 'cs')->first();
     if (!$jabatanCs) {
         return response()->json(['message' => 'Jabatan CS tidak ditemukan'], 404);
     }
 
-    $pegawais = Pegawai::where('id_jabatan', $jabatanCs->id_jabatan)->get();
+    // Cari pegawai yang user_id-nya sama dan id_jabatan = CS
+    $pegawai = Pegawai::where('user_id', $user->id)
+                      ->where('id_jabatan', $jabatanCs->id_jabatan)
+                      ->first();
 
-    if ($pegawais->isEmpty()) {
-        return response()->json(['message' => 'Tidak ada pegawai dengan jabatan CS'], 404);
+    if (!$pegawai) {
+        return response()->json(['message' => 'Pegawai CS tidak ditemukan untuk user ini'], 404);
     }
 
     return response()->json([
-        'message' => 'Berhasil mengambil pegawai dengan jabatan CS',
-        'data' => $pegawais
+        'message' => 'Berhasil mendapatkan pegawai CS dari token',
+        'data' => $pegawai,
     ]);
 }
+
+
+
 
 public function getKurir()
 {
