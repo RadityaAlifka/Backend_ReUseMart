@@ -38,7 +38,7 @@ Route::prefix('public')->group(function () {
     Route::get('/barang/kategori/{id_kategori}', [BarangController::class, 'filterBarangPerKategori']);
 });
 
-Route::get('/pegawai/cs', [PegawaiController::class, 'getPegawaiCS']);
+
 
 // Route untuk login
 Route::post('/login', [AuthController::class, 'login']);
@@ -81,9 +81,11 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
     Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']);
     Route::get('/cs/penitip', [PenitipController::class, 'index']);
     Route::get('/penitip/search', [PenitipController::class, 'search']);
-    Route::post('/diskusi', [DiskusiController::class, 'store']);
-    Route::get('/diskusi', [DiskusiController::class, 'index']);
-    Route::delete('/penitip/{id}', [PenitipController::class, 'destroy']); // Penjual bisa mengakses
+    Route::put('/diskusi/{id}', [DiskusiController::class, 'update']);
+    Route::get('/cs/diskusi', [DiskusiController::class, 'index']);
+    Route::delete('/penitip/{id}', [PenitipController::class, 'de   stroy']);
+    Route::get('/cs/pegawai', [PegawaiController::class,'getPegawaiCSFromToken']);
+    
 });// Route
 // 
 // 
@@ -124,7 +126,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::put('/detailTransaksis/{id}', [DetailTransaksiController::class, 'update']);
     Route::delete('/detailTransaksis/{id}', [DetailTransaksiController::class, 'destroy']);
     Route::get('/rating/barang/{id_barang}', [RatingController::class, 'showByBarang']);
-    
+    Route::get('/kurir/pegawai', [PegawaiController::class, 'getKurir']);
 
 }); 
 
@@ -186,12 +188,21 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('/gudang/pengambilan', [PengambilanController::class, 'index']);
     Route::put('/pengambilan/konfirmasi/{id}', [PengambilanController::class, 'konfirmasiPengambilan']);
     Route::get('/get-transaksi/{id}', [TransaksiController::class, 'getTransaksiById']);
-
+    Route::get('/get-kurir', [PegawaiController::class, 'getKurir']);
 });
 
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
+
+Route::prefix('pengambilan')->group(function () {
+    Route::get('/', [PengambilanController::class, 'index']);
+    Route::get('/{id}', [PengambilanController::class, 'show']);
+    Route::post('/', [PengambilanController::class, 'store']);
+    Route::put('/{id}', [PengambilanController::class, 'update']);
+    Route::delete('/{id}', [PengambilanController::class, 'destroy']);
+});
+
 
 // Notification Routes
 Route::prefix('notifications')->group(function () {
