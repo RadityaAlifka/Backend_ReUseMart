@@ -126,7 +126,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::put('/detailTransaksis/{id}', [DetailTransaksiController::class, 'update']);
     Route::delete('/detailTransaksis/{id}', [DetailTransaksiController::class, 'destroy']);
     Route::get('/rating/barang/{id_barang}', [RatingController::class, 'showByBarang']);
-    
+    Route::get('/kurir/pegawai', [PegawaiController::class, 'getKurir']);
 
 }); 
 
