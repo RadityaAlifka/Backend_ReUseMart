@@ -132,7 +132,7 @@ class TransaksiController
 
     public function getAllTransaksiWithBarang()
     {
-        $transaksis = Transaksi::with(['detailtransaksi.barang', 'pengambilans', 'pengirimen'])->get();
+        $transaksis = Transaksi::with(['detailtransaksi.barang', 'pengambilans', 'pengirimen', 'pembeli'])->get();
         return response()->json($transaksis);
     }
 

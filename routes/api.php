@@ -188,7 +188,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('/gudang/pengambilan', [PengambilanController::class, 'index']);
     Route::put('/pengambilan/konfirmasi/{id}', [PengambilanController::class, 'konfirmasiPengambilan']);
     Route::get('/get-transaksi/{id}', [TransaksiController::class, 'getTransaksiById']);
-
+    Route::get('/get-kurir', [PegawaiController::class, 'getKurir']);
 });
 
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
