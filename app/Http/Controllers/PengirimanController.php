@@ -83,4 +83,25 @@ class PengirimanController
 
         return response()->json(['message' => 'Pengiriman deleted successfully']);
     }
+    public function editPengiriman(Request $request, $id)
+    {
+        $pengiriman = Pengiriman::find($id);
+
+        if (!$pengiriman) {
+            return response()->json(['message' => 'Pengiriman not found'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'id_pegawai' => 'sometimes|required|exists:pegawais,id_pegawai',
+            'tanggal_pengiriman' => 'sometimes|required|date',
+            'status_pengiriman' => 'sometimes|required|string|max:50',
+        ]);
+
+        $pengiriman->update($validatedData);
+
+        return response()->json([
+            'message' => 'Pengiriman updated successfully',
+            'data' => $pengiriman->load(['pegawai', 'transaksi'])
+        ]);
+    }
 }
