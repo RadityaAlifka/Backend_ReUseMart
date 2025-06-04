@@ -184,4 +184,24 @@ class PengambilanController
         }
     }
     
+    public function editPengambilan(Request $request, $id)
+    {
+        $pengambilan = Pengambilan::find($id);
+
+        if (!$pengambilan) {
+            return response()->json(['message' => 'Pengambilan not found'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'batas_pengambilan' => 'sometimes|required|date|after_or_equal:tanggal_pengambilan',
+            'status_pengambilan' => 'sometimes|required|string|max:50',
+        ]);
+
+        $pengambilan->update($validatedData);
+
+        return response()->json([
+            'message' => 'Pengambilan updated successfully',
+            'data' => $pengambilan->load(['pembeli', 'penitip', 'transaksi'])
+        ]);
+    }
 }

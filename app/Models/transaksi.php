@@ -56,7 +56,7 @@ class Transaksi extends Model
 	}
 	public function detailtransaksi()
 	{
-		return $this->hasOne(Detailtransaksi::class, 'id_transaksi');
+		return $this->hasMany(Detailtransaksi::class, 'id_transaksi');
 	}
 
 	public function pengambilans()
