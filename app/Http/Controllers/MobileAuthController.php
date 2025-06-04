@@ -46,8 +46,6 @@ class MobileAuthController
                     $fcmSubscribed = true;
                 }
                 break;
-                
-            
         }
 
         return response()->json([
@@ -61,8 +59,8 @@ class MobileAuthController
     {
         $user = $request->user();
         
-        // Jika user adalah penitip, unsubscribe dari notifikasi
-        if ($user->level === 'penitip' && $request->fcm_token) {
+        // Jika user adalah penjual, unsubscribe dari notifikasi
+        if ($user->level === 'penjual' && $request->fcm_token) {
             $penitip = \App\Models\Penitip::where('user_id', $user->id)->first();
             if ($penitip) {
                 $this->notificationController->unsubscribeFromTopic([
@@ -77,7 +75,7 @@ class MobileAuthController
         
         return response()->json([
             'message' => 'Logged out from mobile',
-            'fcm_unsubscribed' => $user->level === 'penitip'
+            'fcm_unsubscribed' => $user->level === 'penjual'
         ]);
     }
 
@@ -89,8 +87,8 @@ class MobileAuthController
 
         $user = $request->user();
         
-        // Re-subscribe dengan token baru jika user adalah penitip
-        if ($user->level === 'penitip') {
+        // Re-subscribe dengan token baru jika user adalah penjual
+        if ($user->level === 'penjual') {
             $penitip = \App\Models\Penitip::where('user_id', $user->id)->first();
             if ($penitip) {
                 // Unsubscribe token lama jika ada
@@ -108,7 +106,7 @@ class MobileAuthController
 
         return response()->json([
             'message' => 'FCM token updated successfully',
-            'fcm_subscribed' => $user->level === 'penitip'
+            'fcm_subscribed' => $user->level === 'penjual'
         ]);
     }
 } 
