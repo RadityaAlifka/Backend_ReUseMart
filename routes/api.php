@@ -30,6 +30,7 @@ use App\Http\Controllers\{
 // Routes untuk umum
 Route::prefix('public')->group(function () {
     Route::get('/barang/bergaransi', [BarangController::class, 'barangBergaransi']);
+    Route::get ('/barang/search', [BarangController::class, 'search']);
     Route::get('/barang', [BarangController::class, 'index']); // Menampilkan barang yang bisa dibeli
     Route::get('/barang/{id}', [BarangController::class, 'show']); // Menampilkan detail per barang
     Route::get('/diskusi', [DiskusiController::class, 'index']); // Menampilkan semua diskusi
