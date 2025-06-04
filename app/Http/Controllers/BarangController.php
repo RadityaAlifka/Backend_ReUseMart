@@ -80,6 +80,7 @@ class BarangController
             'barangs.*.id_kategori' => 'required|exists:kategori_barangs,id_kategori',
             'barangs.*.id_penitip' => 'required|exists:penitips,id_penitip',
             'barangs.*.id_pegawai' => 'required|exists:pegawais,id_pegawai',
+            'barangs.*.id_hunter' => 'nullable|exists:pegawais,id_pegawai',
             'barangs.*.nama_barang' => 'required|string|max:255',
             'barangs.*.deskripsi_barang' => 'required|string',
             'barangs.*.garansi' => 'nullable|string|max:255',
@@ -99,6 +100,7 @@ class BarangController
         $penitipan = Penitipan::create([
             'id_penitip' => $firstBarang['id_penitip'],
             'id_pegawai' => $firstBarang['id_pegawai'],
+            'id_hunter' => $firstBarang['id_hunter'] ?? null,
             'tanggal_penitipan' => $now->toDateString(),
             'batas_penitipan' => $now->copy()->addDays(30),
         ]);

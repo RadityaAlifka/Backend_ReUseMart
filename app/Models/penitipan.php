@@ -39,6 +39,7 @@ class Penitipan extends Model
 	protected $fillable = [
 		'id_penitip',
 		'id_pegawai',
+		'id_hunter',
 		'tanggal_penitipan',
 		'batas_penitipan',
 	];
