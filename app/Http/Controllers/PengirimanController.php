@@ -4,9 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengiriman;
 use Illuminate\Http\Request;
+use App\Http\Controllers\NotificationController;
 
 class PengirimanController 
 {
+    protected $notificationController;
+
+    public function __construct(NotificationController $notificationController)
+    {
+        $this->notificationController = $notificationController;
+    }
+
     // Get all pengirimans
     public function index()
     {
@@ -87,7 +95,11 @@ class PengirimanController
     }
     public function editPengiriman(Request $request, $id)
     {
-        $pengiriman = Pengiriman::find($id);
+        $pengiriman = Pengiriman::with([
+            'pegawai', 
+            'transaksi.pembeli',
+            'transaksi.detailtransaksi.barang.penitipan.penitip'
+        ])->find($id);
 
         if (!$pengiriman) {
             return response()->json(['message' => 'Pengiriman not found'], 404);
@@ -100,6 +112,15 @@ class PengirimanController
         ]);
 
         $pengiriman->update($validatedData);
+
+        // Kirim notifikasi jika ada perubahan tanggal atau status pengiriman
+        if (isset($validatedData['tanggal_pengiriman']) || isset($validatedData['status_pengiriman'])) {
+            $notificationSent = $this->notificationController->sendDeliveryScheduleNotification($pengiriman);
+            
+            if (!$notificationSent) {
+                \Log::warning('Failed to send delivery schedule notifications for pengiriman ID: ' . $id);
+            }
+        }
 
         return response()->json([
             'message' => 'Pengiriman updated successfully',

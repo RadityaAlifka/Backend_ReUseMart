@@ -46,6 +46,25 @@ class MobileAuthController
                     $fcmSubscribed = true;
                 }
                 break;
+            case 'pembeli':
+                $pembeli = \App\Models\Pembeli::where('user_id', $user->id)->first();
+                if ($pembeli) {
+                    \Log::info('Subscribe to topic: ' . 'pembeli_' . $pembeli->id_pembeli . ' with token: ' . $request->fcm_token);
+                    $this->notificationController->subscribePembeliFromRequest($pembeli->id_pembeli, $request->fcm_token);
+                    $fcmSubscribed = true;
+                }
+                break;
+            case 'pegawai':
+                $pegawai = \App\Models\Pegawai::where('user_id', $user->id)->first();
+                if ($pegawai) {
+                    $jabatan = $pegawai->jabatan;
+                    if ($jabatan && $jabatan->nama_jabatan === 'kurir') {
+                        \Log::info('Subscribe to topic: ' . 'kurir_' . $pegawai->id_pegawai . ' with token: ' . $request->fcm_token);
+                        $this->notificationController->subscribeKurirFromRequest($pegawai->id_pegawai, $request->fcm_token);
+                        $fcmSubscribed = true;
+                    }
+                }
+                break;
         }
 
         return response()->json([

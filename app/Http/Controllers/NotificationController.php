@@ -300,4 +300,169 @@ class NotificationController
             ], 500);
         }
     }
+
+    /**
+     * Subscribe pembeli ke topic notifikasi
+     */
+    public function subscribePembeliFromRequest($id_pembeli, $token)
+    {
+        $topic = 'pembeli_' . $id_pembeli;
+        \Log::info('SubscribePembeliFromRequest: Subscribe to topic: ' . $topic . ' with token: ' . $token);
+        try {
+            $this->messaging->subscribeToTopic($topic, [$token]);
+            return response()->json([
+                'message' => 'Successfully subscribed to topic ' . $topic
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to subscribe to topic',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Subscribe kurir ke topic notifikasi
+     */
+    public function subscribeKurirFromRequest($id_pegawai, $token)
+    {
+        $topic = 'kurir_' . $id_pegawai;
+        \Log::info('Attempting to subscribe kurir to topic', [
+            'topic' => $topic,
+            'token' => $token,
+            'id_pegawai' => $id_pegawai
+        ]);
+
+        try {
+            $result = $this->messaging->subscribeToTopic($topic, [$token]);
+            \Log::info('Successfully subscribed kurir to topic', [
+                'topic' => $topic,
+                'result' => $result
+            ]);
+            
+            return response()->json([
+                'message' => 'Successfully subscribed to topic ' . $topic,
+                'topic' => $topic,
+                'token' => $token
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to subscribe kurir to topic', [
+                'topic' => $topic,
+                'error' => $e->getMessage(),
+                'id_pegawai' => $id_pegawai
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to subscribe to topic',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Kirim notifikasi jadwal pengiriman
+     */
+    public function sendDeliveryScheduleNotification($pengiriman)
+    {
+        try {
+            // Dapatkan data yang diperlukan
+            $transaksi = $pengiriman->transaksi;
+            $pembeli = $transaksi->pembeli;
+            $kurir = $pengiriman->pegawai;
+            
+            // Logging untuk debug
+            \Log::info('Sending delivery schedule notifications', [
+                'pengiriman_id' => $pengiriman->id_pengiriman,
+                'kurir_id' => $kurir ? $kurir->id_pegawai : 'null',
+                'pembeli_id' => $pembeli ? $pembeli->id_pembeli : 'null',
+            ]);
+            
+            // Format tanggal pengiriman
+            $tanggal = \Carbon\Carbon::parse($pengiriman->tanggal_pengiriman)->format('d M Y');
+            
+            // Notifikasi untuk pembeli
+            if ($pembeli) {
+                try {
+                    $topic_pembeli = 'pembeli_' . $pembeli->id_pembeli;
+                    \Log::info('Sending notification to pembeli', ['topic' => $topic_pembeli]);
+                    
+                    $message_pembeli = CloudMessage::withTarget('topic', $topic_pembeli)
+                        ->withNotification(Notification::create(
+                            'Update Jadwal Pengiriman',
+                            "Pesanan Anda akan dikirim pada tanggal {$tanggal}"
+                        ))
+                        ->withData([
+                            'type' => 'delivery_schedule',
+                            'id_pengiriman' => (string)$pengiriman->id_pengiriman
+                        ]);
+                    $this->messaging->send($message_pembeli);
+                    \Log::info('Successfully sent notification to pembeli');
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send notification to pembeli: ' . $e->getMessage());
+                }
+            }
+            
+            // Notifikasi untuk kurir
+            if ($kurir) {
+                try {
+                    $topic_kurir = 'kurir_' . $kurir->id_pegawai;
+                    \Log::info('Sending notification to kurir', [
+                        'topic' => $topic_kurir,
+                        'kurir_id' => $kurir->id_pegawai,
+                        'jabatan' => $kurir->jabatan ? $kurir->jabatan->nama_jabatan : 'unknown'
+                    ]);
+                    
+                    $message_kurir = CloudMessage::withTarget('topic', $topic_kurir)
+                        ->withNotification(Notification::create(
+                            'Jadwal Pengiriman Baru',
+                            "Anda memiliki jadwal pengiriman baru pada tanggal {$tanggal}"
+                        ))
+                        ->withData([
+                            'type' => 'delivery_schedule',
+                            'id_pengiriman' => (string)$pengiriman->id_pengiriman
+                        ]);
+                    $this->messaging->send($message_kurir);
+                    \Log::info('Successfully sent notification to kurir');
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send notification to kurir: ' . $e->getMessage(), [
+                        'kurir_id' => $kurir->id_pegawai,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            } else {
+                \Log::warning('No kurir found for pengiriman', ['pengiriman_id' => $pengiriman->id_pengiriman]);
+            }
+            
+            // Notifikasi untuk penjual
+            $detailTransaksi = $transaksi->detailtransaksi;
+            if ($detailTransaksi) {
+                $barang = $detailTransaksi->barang;
+                if ($barang) {
+                    $penitipan = $barang->penitipan;
+                    if ($penitipan) {
+                        $penitip = $penitipan->penitip;
+                        if ($penitip) {
+                            $topic_penjual = 'penitip_' . $penitip->id_penitip;
+                            $message_penjual = CloudMessage::withTarget('topic', $topic_penjual)
+                                ->withNotification(Notification::create(
+                                    'Update Pengiriman Barang',
+                                    "Barang Anda akan dikirim pada tanggal {$tanggal}"
+                                ))
+                                ->withData([
+                                    'type' => 'delivery_schedule',
+                                    'id_pengiriman' => (string)$pengiriman->id_pengiriman
+                                ]);
+                            $this->messaging->send($message_penjual);
+                        }
+                    }
+                }
+            }
+
+            \Log::info('Delivery schedule notifications completed');
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Failed to send delivery schedule notifications: ' . $e->getMessage());
+            return false;
+        }
+    }
 } 
