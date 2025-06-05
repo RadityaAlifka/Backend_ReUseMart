@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pengambilan;
 use App\Models\Barang;
 use Illuminate\Http\Request;
+use App\Models\Transaksi;
 use App\Http\Controllers\NotificationController;
 class PengambilanController 
 {
@@ -164,7 +165,7 @@ class PengambilanController
             ]);
 
             // Ambil data pengambilan dengan relasi yang dibutuhkan
-            $pengambilan = Pengambilan::with(['pembeli', 'penitip'])->find($id);
+            $pengambilan = Pengambilan::with(['pembeli', 'penitip', 'transaksi'])->find($id);
 
             if (!$pengambilan) {
                 \Log::warning('Pengambilan not found', ['id' => $id]);
@@ -194,6 +195,20 @@ class PengambilanController
                     'old_status' => $oldStatus,
                     'new_status' => 'diambil kembali'
                 ]);
+
+                // Update status transaksi jika ada pembeli
+                if ($pengambilan->id_pembeli && $pengambilan->id_transaksi) {
+                    $transaksi = Transaksi::find($pengambilan->id_transaksi);
+                    if ($transaksi) {
+                        $transaksi->status_pembayaran = 'selesai';
+                        $transaksi->save();
+                        
+                        \Log::info('Updated transaksi status', [
+                            'transaksi_id' => $transaksi->id_transaksi,
+                            'new_status' => 'selesai'
+                        ]);
+                    }
+                }
             } else {
                 \Log::warning('Barang not found', ['id_barang' => $validatedData['id_barang']]);
             }

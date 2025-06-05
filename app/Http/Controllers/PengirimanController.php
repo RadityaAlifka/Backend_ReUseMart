@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengiriman;
 use Illuminate\Http\Request;
+use App\Models\Transaksi;
 use App\Http\Controllers\NotificationController;
 
 class PengirimanController 
