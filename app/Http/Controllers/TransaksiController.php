@@ -5,9 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use App\Models\Pembeli;
-
+use App\Models\Barang;
+use App\Http\Controllers\NotificationController;
+use App\Models\Detailtransaksi;
 class TransaksiController 
 {
+    public function __construct(NotificationController $notificationController)
+    {
+        $this->notificationController = $notificationController;
+    }
+   
     // Get all transaksis
     public function index()
     {
@@ -17,43 +24,63 @@ class TransaksiController
 
     // Store a new transaksi
     public function store(Request $request)
-{
-    $validatedData = $request->validate([
-        'id_pembeli' => 'required|exists:pembelis,id_pembeli',
-        'id_penitip' => 'required|exists:penitips,id_penitip',
-        'tgl_pesan' => 'required|date',
-        'tgl_lunas' => 'nullable|date|after_or_equal:tgl_pesan',
-        'diskon_poin' => 'nullable|numeric|min:0',
-        'bukti_pembayaran' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-        'status_pembayaran' => 'required|string|max:50',
-        'total_harga' => 'required|numeric|min:0',
-    ]);
+    {
+        $validatedData = $request->validate([
+            'id_pembeli' => 'required|exists:pembelis,id_pembeli',
+            'id_penitip' => 'required|exists:penitips,id_penitip',
+            'tgl_pesan' => 'required|date',
+            'tgl_lunas' => 'nullable|date|after_or_equal:tgl_pesan',
+            'diskon_poin' => 'nullable|numeric|min:0',
+            'bukti_pembayaran' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'status_pembayaran' => 'required|string|max:50',
+            'total_harga' => 'required|numeric|min:0',
+            'barangs' => 'required|array',
+            'barangs.*' => 'required|exists:barangs,id_barang',
+        ]);
 
-    // Jika ada file bukti_pembayaran, simpan file dan update data
-    if ($request->hasFile('bukti_pembayaran')) {
-        $file = $request->file('bukti_pembayaran');
-        $filename = time() . '_' . $file->getClientOriginalName();
-        // Simpan di storage/app/public/bukti_pembayaran
-        $path = $file->storeAs('bukti_pembayaran', $filename, 'public');
-        // Simpan path relatif ke database
-        $validatedData['bukti_pembayaran'] = $path;
-    }
-
-    $transaksi = Transaksi::create($validatedData);
-
-    if (isset($validatedData['diskon_poin']) && $validatedData['diskon_poin'] > 0) {
-        $pembeli = Pembeli::find($validatedData['id_pembeli']);
-        if ($pembeli) {
-            $pembeli->poin = max(0, $pembeli->poin - $validatedData['diskon_poin']);
-            $pembeli->save();
+        // Jika ada file bukti_pembayaran, simpan file dan update data
+        if ($request->hasFile('bukti_pembayaran')) {
+            $file = $request->file('bukti_pembayaran');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            // Simpan di storage/app/public/bukti_pembayaran
+            $path = $file->storeAs('bukti_pembayaran', $filename, 'public');
+            // Simpan path relatif ke database
+            $validatedData['bukti_pembayaran'] = $path;
         }
+
+        $barangs = $validatedData['barangs'];
+        unset($validatedData['barangs']);
+
+        $transaksi = Transaksi::create($validatedData);
+
+        // Buat detail transaksi dan update status barang
+        foreach ($barangs as $id_barang) {
+            // Buat detail transaksi
+            Detailtransaksi::create([
+                'id_transaksi' => $transaksi->id_transaksi,
+                'id_barang' => $id_barang
+            ]);
+            // Update status barang jadi laku
+            $barang = Barang::find($id_barang);
+            if ($barang) {
+                $barang->updateStatus('laku');
+                $this->notificationController->notifyBarangLaku($barang);
+            }
+        }
+
+        if (isset($validatedData['diskon_poin']) && $validatedData['diskon_poin'] > 0) {
+            $pembeli = Pembeli::find($validatedData['id_pembeli']);
+            if ($pembeli) {
+                $pembeli->poin = max(0, $pembeli->poin - $validatedData['diskon_poin']);
+                $pembeli->save();
+            }
+        }
+        return response()->json([
+            'message' => 'Transaksi created successfully',
+            'data' => $transaksi->load(['detailtransaksi', 'pengambilans', 'pengirimen'])
+        ], 201);
     }
 
-    return response()->json([
-        'message' => 'Transaksi created successfully',
-        'data' => $transaksi->load(['detailtransaksi', 'pengambilans', 'pengirimen'])
-    ], 201);
-}
 
     // Show a specific transaksi
     public function show($id)
