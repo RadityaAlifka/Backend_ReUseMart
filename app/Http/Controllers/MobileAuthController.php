@@ -46,8 +46,25 @@ class MobileAuthController
                     $fcmSubscribed = true;
                 }
                 break;
-                
-            
+            case 'pembeli':
+                $pembeli = \App\Models\Pembeli::where('user_id', $user->id)->first();
+                if ($pembeli) {
+                    \Log::info('Subscribe to topic: ' . 'pembeli_' . $pembeli->id_pembeli . ' with token: ' . $request->fcm_token);
+                    $this->notificationController->subscribePembeliFromRequest($pembeli->id_pembeli, $request->fcm_token);
+                    $fcmSubscribed = true;
+                }
+                break;
+            case 'pegawai':
+                $pegawai = \App\Models\Pegawai::where('user_id', $user->id)->first();
+                if ($pegawai) {
+                    $jabatan = $pegawai->jabatan;
+                    if ($jabatan && $jabatan->nama_jabatan === 'kurir') {
+                        \Log::info('Subscribe to topic: ' . 'kurir_' . $pegawai->id_pegawai . ' with token: ' . $request->fcm_token);
+                        $this->notificationController->subscribeKurirFromRequest($pegawai->id_pegawai, $request->fcm_token);
+                        $fcmSubscribed = true;
+                    }
+                }
+                break;
         }
 
         return response()->json([
@@ -61,8 +78,8 @@ class MobileAuthController
     {
         $user = $request->user();
         
-        // Jika user adalah penitip, unsubscribe dari notifikasi
-        if ($user->level === 'penitip' && $request->fcm_token) {
+        // Jika user adalah penjual, unsubscribe dari notifikasi
+        if ($user->level === 'penjual' && $request->fcm_token) {
             $penitip = \App\Models\Penitip::where('user_id', $user->id)->first();
             if ($penitip) {
                 $this->notificationController->unsubscribeFromTopic([
@@ -77,7 +94,7 @@ class MobileAuthController
         
         return response()->json([
             'message' => 'Logged out from mobile',
-            'fcm_unsubscribed' => $user->level === 'penitip'
+            'fcm_unsubscribed' => $user->level === 'penjual'
         ]);
     }
 
@@ -89,8 +106,8 @@ class MobileAuthController
 
         $user = $request->user();
         
-        // Re-subscribe dengan token baru jika user adalah penitip
-        if ($user->level === 'penitip') {
+        // Re-subscribe dengan token baru jika user adalah penjual
+        if ($user->level === 'penjual') {
             $penitip = \App\Models\Penitip::where('user_id', $user->id)->first();
             if ($penitip) {
                 // Unsubscribe token lama jika ada
@@ -108,7 +125,7 @@ class MobileAuthController
 
         return response()->json([
             'message' => 'FCM token updated successfully',
-            'fcm_subscribed' => $user->level === 'penitip'
+            'fcm_subscribed' => $user->level === 'penjual'
         ]);
     }
 } 
