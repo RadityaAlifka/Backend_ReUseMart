@@ -465,4 +465,96 @@ class NotificationController
             return false;
         }
     }
+
+    public function NotifyPengambilanPenitip($id_penitip)
+    {
+        try {
+            $topic = 'penitip_' . $id_penitip;
+            \Log::info('Attempting to send pengambilan notification to penitip', [
+                'topic' => $topic,
+                'id_penitip' => $id_penitip
+            ]);
+
+            $message = CloudMessage::withTarget('topic', $topic)
+                ->withNotification(Notification::create(
+                    'Konfirmasi Pengambilan Barang',
+                    'Barang Anda telah berhasil diambil'
+                ))
+                ->withData([
+                    'type' => 'pengambilan_notification',
+                    'id_penitip' => (string)$id_penitip
+                ]);
+
+            $result = $this->messaging->send($message);
+            
+            \Log::info('Pengambilan notification sent successfully', [
+                'topic' => $topic,
+                'result' => $result,
+                'message' => $message
+            ]);
+
+            return response()->json([
+                'message' => 'Notification sent successfully to penitip',
+                'topic' => $topic
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send pengambilan notification to penitip', [
+                'topic' => 'penitip_' . $id_penitip,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to send notification',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function NotifyPengambilanPembeli($id_pembeli)
+    {
+        $topic = 'pembeli_' . $id_pembeli;
+        $message = CloudMessage::withTarget('topic', $topic)
+            ->withNotification(Notification::create(
+                'Pengambilan Barang',
+                "Barang anda telah diambil"
+            ))
+            ->withData([
+                'type' => 'pengambilan_pembeli_notification'
+            ]);
+    }
+
+    // Tambahkan method untuk verifikasi subscription
+    public function verifyTopicSubscription($topic)
+    {
+        try {
+            \Log::info('Verifying topic subscription', ['topic' => $topic]);
+            
+            // Kirim test notification dengan flag khusus
+            $message = CloudMessage::withTarget('topic', $topic)
+                ->withNotification(Notification::create(
+                    'Subscription Test',
+                    'Testing topic subscription'
+                ))
+                ->withData([
+                    'type' => 'subscription_test',
+                    'timestamp' => now()->toIso8601String()
+                ]);
+
+            $result = $this->messaging->send($message);
+            
+            \Log::info('Topic subscription verification sent', [
+                'topic' => $topic,
+                'result' => $result
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Failed to verify topic subscription', [
+                'topic' => $topic,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
 } 
