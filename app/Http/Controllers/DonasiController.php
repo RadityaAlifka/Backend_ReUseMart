@@ -5,9 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Donasi;
 use App\Models\Barang;
 use Illuminate\Http\Request;
+use App\Http\Controllers\NotificationController;
 
-class DonasiController 
+class DonasiController  
 {
+    protected $notificationController;
+
+    public function __construct(NotificationController $notificationController)
+    {
+        $this->notificationController = $notificationController;
+    }
+
     public function index()
     {
         $donasi = Donasi::with('organisasi')->get();
@@ -50,6 +58,9 @@ class DonasiController
         if ($penitip) {
             $poin = floor($barang->harga / 10000); // Hitung poin berdasarkan harga barang
             $penitip->increment('poin', $poin); // Tambahkan poin ke penitip
+            
+            // Kirim notifikasi ke penitip
+            $this->notificationController->sendDonasiNotification($penitip->id_penitip);
         }
     
         return response()->json([

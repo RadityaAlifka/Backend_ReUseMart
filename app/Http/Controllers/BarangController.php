@@ -6,29 +6,71 @@ use App\Models\Barang;
 use App\Models\KategoriBarang;
 use App\Models\Pegawai;
 use App\Models\Penitipan;
+use App\Models\Penitip;
 use App\Models\Donasi;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class BarangController 
 {
+    protected $penitipController;
+
+    public function __construct(PenitipController $penitipController)
+    {
+        $this->penitipController = $penitipController;
+    }
     public function index()
     {
-        // Ambil semua barang dengan status 'tersedia'
-        $barang = Barang::where('status_barang', 'Tersedia')->get();
+        try {
+            // Ambil semua barang dengan status 'tersedia'
+            $barang = Barang::where('status_barang', 'Tersedia')
+                ->with('penitipan') // Load relasi penitipan untuk mendapatkan id_penitip
+                ->get()
+                ->map(function($item) {
+                    // Ambil id_penitip dari relasi penitipan
+                    $id_penitip = $item->penitipan?->id_penitip;
+                    
+                    if ($id_penitip) {
+                        // Gunakan getAkumulasiRating untuk mendapatkan rating penitip
+                        $ratingResponse = $this->penitipController->getAkumulasiRating($id_penitip);
+                        $ratingData = json_decode($ratingResponse->getContent());
+                        
+                        // Tambahkan rating ke item barang
+                        $item->rating_penitip = $ratingData->average_rating;
+                        
+                        // Hitung jumlah rating untuk penitip ini
+                        $penitipanIds = \App\Models\Penitipan::where('id_penitip', $id_penitip)->pluck('id_penitipan');
+                        $barangIds = \App\Models\Barang::whereIn('id_penitipan', $penitipanIds)->pluck('id_barang');
+                        $item->jumlah_rating = \App\Models\Rating::whereIn('id_barang', $barangIds)->count();
+                    } else {
+                        $item->rating_penitip = null;
+                        $item->jumlah_rating = 0;
+                    }
+                    
+                    return $item;
+                });
+            
+            // Cek apakah data ditemukan
+            if ($barang->isEmpty()) {
+                return response()->json([
+                    'message' => 'Tidak ada barang yang tersedia saat ini.'
+                ], 404);
+            }
 
-        // Cek apakah data ditemukan
-        if ($barang->isEmpty()) {
+            // Jika ada data, kembalikan dengan response JSON
             return response()->json([
-                'message' => 'Tidak ada barang yang tersedia saat ini.'
-            ], 404);
-        }
+                'message' => 'Daftar barang tersedia',
+                'data' => $barang
+            ], 200);
 
-        // Jika ada data, kembalikan dengan response JSON
-        return response()->json([
-            'message' => 'Daftar barang tersedia',
-            'data' => $barang
-        ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error in BarangController@index: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat mengambil data barang',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
@@ -38,6 +80,7 @@ class BarangController
             'barangs.*.id_kategori' => 'required|exists:kategori_barangs,id_kategori',
             'barangs.*.id_penitip' => 'required|exists:penitips,id_penitip',
             'barangs.*.id_pegawai' => 'required|exists:pegawais,id_pegawai',
+            'barangs.*.id_hunter' => 'nullable|exists:pegawais,id_pegawai',
             'barangs.*.nama_barang' => 'required|string|max:255',
             'barangs.*.deskripsi_barang' => 'required|string',
             'barangs.*.garansi' => 'nullable|string|max:255',
@@ -57,6 +100,7 @@ class BarangController
         $penitipan = Penitipan::create([
             'id_penitip' => $firstBarang['id_penitip'],
             'id_pegawai' => $firstBarang['id_pegawai'],
+            'id_hunter' => $firstBarang['id_hunter'] ?? null,
             'tanggal_penitipan' => $now->toDateString(),
             'batas_penitipan' => $now->copy()->addDays(30),
         ]);
@@ -297,6 +341,40 @@ public function checkStokBarang($id)
             'message' => 'Barang pada kategori',
             'data' => $barang
         ]);
+    }
+    public function search(Request $request)
+    {
+        $request->validate([
+            'keyword' => 'nullable|string|max:255'
+        ]);
+
+        $keyword = $request->input('keyword');
+
+        if (empty($keyword)) {
+          
+             return response()->json([
+                'message' => 'Masukkan kata kunci untuk pencarian.',
+                'data' => []
+            ], 200); 
+        }
+
+        $barang = Barang::with(['kategori_barang', 'penitipan']) 
+            ->where('status_barang', 'Tersedia')
+            ->where('nama_barang', 'LIKE', "%{$keyword}%")
+            ->take(20) 
+            ->get();
+
+        if ($barang->isEmpty()) {
+            return response()->json([
+                'message' => 'Barang tidak ditemukan untuk kata kunci: ' . $keyword,
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Hasil pencarian untuk: ' . $keyword,
+            'data' => $barang
+        ], 200);
     }
 
 }
