@@ -208,16 +208,7 @@ class NotificationController
                         'id_penitipan' => (string)$penitipan->id_penitipan,
                         'type' => 'hari_h_notification'
                     ]);
-
                 $this->messaging->send($message);
-
-                // Update status barang menjadi "Masa Titip Habis"
-                foreach ($penitipan->barangs as $barang) {
-                    if ($barang->status_barang === 'Tersedia') {
-                        $barang->status_barang = 'Masa Titip Habis';
-                        $barang->save();
-                    }
-                }
             }
 
             return response()->json([
@@ -555,6 +546,36 @@ class NotificationController
                 'error' => $e->getMessage()
             ]);
             return false;
+        }
+    }
+    public function notifyBarangLaku($barang)
+    {
+        try {
+            $topic = 'penitip_' . $barang->penitipan->id_penitip;
+            \Log::info('Sending barang laku notification to topic: ' . $topic);
+            
+            $message = CloudMessage::withTarget('topic', $topic)
+                ->withNotification(Notification::create(
+                    'Barang Laku',
+                    "Barang '{$barang->nama_barang}' telah terjual"
+                ))
+                ->withData([
+                    'id_barang' => (string)$barang->id_barang,
+                    'type' => 'barang_laku_notification'
+                ]);
+
+            $this->messaging->send($message);
+            \Log::info('Barang laku notification sent successfully to topic: ' . $topic);
+
+            return response()->json([
+                'message' => 'Barang laku notification sent successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send barang laku notification: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send barang laku notification',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 } 
