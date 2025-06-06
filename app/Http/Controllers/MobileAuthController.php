@@ -18,6 +18,7 @@ class MobileAuthController
 
     public function login(Request $request)
     {
+        \Log::info('Login request received', ['request' => $request->all()]);
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
