@@ -23,7 +23,7 @@ class DetailtransaksiController
             'subtotal' => 'required|numeric',
         ]);
 
-        $detailTransaksi = Detailtransaksi::create($validatedData);
+        $detailTransaksi = Detailtransaksi::create( $validatedData);
 
         return response()->json([
             'message' => 'Detail Transaksi created successfully',
