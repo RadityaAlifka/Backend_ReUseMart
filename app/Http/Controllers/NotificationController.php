@@ -557,4 +557,38 @@ class NotificationController
             return false;
         }
     }
+
+    public function sendBarangLakuNotification($id_penitip, $nama_barang)
+{
+    try {
+        $topic = 'penitip_' . $id_penitip;
+        \Log::info("Sending 'barang laku' notification to topic: $topic for barang: $nama_barang");
+
+        $message = CloudMessage::withTarget('topic', $topic)
+            ->withNotification(Notification::create(
+                'Barang Telah Terjual',
+                "Barang '{$nama_barang}' milik Anda telah berhasil terjual!"
+            ))
+            ->withData([
+                'type' => 'barang_laku_notification',
+                'nama_barang' => $nama_barang
+            ]);
+
+        $this->messaging->send($message);
+
+        \Log::info('Barang laku notification sent successfully to topic: ' . $topic);
+
+        return response()->json([
+            'message' => 'Barang laku notification sent successfully'
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Failed to send barang laku notification: ' . $e->getMessage());
+        return response()->json([
+            'message' => 'Failed to send barang laku notification',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+    
 } 

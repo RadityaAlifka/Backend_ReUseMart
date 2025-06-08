@@ -121,4 +121,28 @@ public function getIdPenitip($id)
 }
 
 
+public function getByTanggal(Request $request)
+{
+    $request->validate([
+        'tanggal' => 'required|date',   
+        
+    ]);
+
+    $tanggal = $request->query('tanggal'); // Ubah dari input() ke query()
+
+    $penitipans = Penitipan::whereDate('tanggal_penitipan', $tanggal)
+        ->with('penitip')
+        ->get();
+
+    if ($penitipans->isEmpty()) {
+        return response()->json(['message' => 'Tidak ada data penitipan pada tanggal tersebut'], 404);
+    }
+
+    return response()->json([
+        'message' => 'Data penitipan pada tanggal ' . $tanggal,
+        'data' => $penitipans,
+    ]);
+}
+
+
 }
