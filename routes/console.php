@@ -5,22 +5,22 @@ use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use App\Console\Commands\UbahOtomatisStatusBarang;
 use Illuminate\Console\Scheduling\Schedule;
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+use app\model\notificationController;
 
-// Jadwalkan command barang:auto-donate
+app(Schedule::class)->call(function () {
+    $notificationController = resolve(NotificationController::class); 
+    $notificationController->sendDonasiNotification();
+})->everyMinute()
+  ->name('send_donasi_notification_closure') 
+  ->withoutOverlapping(); 
+
 app()->singleton(Schedule::class, function ($app) {
     $schedule = new Schedule();
+    $schedule->command('notification:check-h3')->everyTenSeconds();
 
-    // Menjadwalkan command untuk dijalankan setiap hari pukul 00:00
-    $schedule->command('barang:auto-donate')->dailyAt('00:00')->timezone('Asia/Jakarta');
+    $schedule->command('notification:check-hari-h')->everyTenSeconds();
 
-    // Notifikasi H-3 setiap hari jam 9 pagi
-    $schedule->command('notification:check-h3')->dailyAt('09:00')->timezone('Asia/Jakarta');
-
-    // Notifikasi Hari H setiap hari jam 9 pagi
-    $schedule->command('notification:check-hari-h')->dailyAt('09:00')->timezone('Asia/Jakarta');
+    //$schedule->command('barang:auto-donate')->everyTenMinutes();
 
     return $schedule;
 });
