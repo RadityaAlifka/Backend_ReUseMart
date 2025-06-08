@@ -114,6 +114,11 @@ class PengirimanController
 
         $pengiriman->update($validatedData);
 
+        // !! SOLUSI: TAMBAHKAN BARIS INI !!
+        // Baris ini akan "memaksa" model untuk memuat ulang relasi 'pegawai'
+        // berdasarkan id_pegawai yang baru (yaitu 26).
+        $pengiriman->load('pegawai');
+
         // Kirim notifikasi jika ada perubahan tanggal atau status pengiriman
         if (isset($validatedData['tanggal_pengiriman']) || isset($validatedData['status_pengiriman'])) {
             $notificationSent = $this->notificationController->sendDeliveryScheduleNotification($pengiriman);
