@@ -184,20 +184,15 @@ class PenitipController
     return response()->json($penitip);
 }
 
-    // Mendapatkan rata-rata rating dari semua barang yang dititipkan oleh penitip tertentu
     public function getAkumulasiRating($id_penitip)
     {
-        // Ambil penitip
         $penitip = \App\Models\Penitip::find($id_penitip);
         if (!$penitip) {
             return response()->json(['message' => 'Penitip not found'], 404);
         }
 
-        // Ambil semua penitipan milik penitip
         $penitipanIds = $penitip->penitipans()->pluck('id_penitipan');
-        // Ambil semua barang dari penitipan tersebut
         $barangIds = \App\Models\Barang::whereIn('id_penitipan', $penitipanIds)->pluck('id_barang');
-        // Ambil semua rating dari barang-barang tersebut
         $averageRating = \App\Models\Rating::whereIn('id_barang', $barangIds)->avg('rating');
 
         return response()->json([

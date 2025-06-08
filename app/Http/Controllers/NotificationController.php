@@ -513,6 +513,9 @@ class NotificationController
             ->withData([
                 'type' => 'pengambilan_pembeli_notification'
             ]);
+            if (!in_array(strtolower($barang->status_barang), ['masa titip habis', 'menunggu donasi'])) {
+    return response()->json(['message' => 'Barang tidak dapat didonasikan'], 400);
+}
     }
 
     // Tambahkan method untuk verifikasi subscription
