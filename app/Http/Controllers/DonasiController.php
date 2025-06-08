@@ -31,7 +31,7 @@ class DonasiController
             return response()->json(['message' => 'Barang not found'], 404);
         }
     
-        if (!in_array($barang->status_barang, ['Masa Titip Habis', 'Menunggu Donasi'])) {
+        if (!in_array(strtolower($barang->status_barang), ['masa titip habis', 'menunggu donasi'])) {
             return response()->json(['message' => 'Barang tidak dapat didonasikan'], 400);
         }
     
