@@ -192,6 +192,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::get('/get-kurir', [PegawaiController::class, 'getKurir']);
     Route::put('/edit-pengiriman/{id}', [PengirimanController::class, 'editPengiriman']);
     Route::put('/edit-pengambilan/{id}', [PengambilanController::class, 'editPengambilan']);
+    Route::post('/proses-komisi/{id}', [TransaksiController::class, 'prosesKomisiTransaksi']);
 });
 
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
