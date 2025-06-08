@@ -6,7 +6,7 @@ use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class LaporanController extends Controller
+class LaporanController 
 {
     /**
      * Display monthly sales report
@@ -19,13 +19,13 @@ class LaporanController extends Controller
         $currentYear = date('Y');
         
         // Get monthly sales data
-        $monthlySales = DB::table('transaksi')
+        $monthlySales = DB::table('transaksis')
             ->select(
-                DB::raw('MONTH(tanggal_transaksi) as month'),
+                DB::raw('MONTH(tgl_pesan) as month'),
                 DB::raw('SUM(total_harga) as total_sales'),
                 DB::raw('COUNT(*) as total_transactions')
             )
-            ->whereYear('tanggal_transaksi', $currentYear)
+            ->whereYear('tgl_pesan', $currentYear)
             ->groupBy('month')
             ->orderBy('month')
             ->get();

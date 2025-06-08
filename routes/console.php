@@ -20,7 +20,7 @@ app()->singleton(Schedule::class, function ($app) {
 
     $schedule->command('notification:check-hari-h')->everyTenSeconds();
 
-    //$schedule->command('barang:auto-donate')->everyTenMinutes();
+    $schedule->command('barang:auto-donate')->everyTenMinutes();
 
     return $schedule;
 });
