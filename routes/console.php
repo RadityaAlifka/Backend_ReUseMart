@@ -8,23 +8,19 @@ use Illuminate\Console\Scheduling\Schedule;
 use app\model\notificationController;
 
 app(Schedule::class)->call(function () {
-    $notificationController = resolve(NotificationController::class); // atau app(NotificationController::class);
+    $notificationController = resolve(NotificationController::class); 
     $notificationController->sendDonasiNotification();
 })->everyMinute()
-  ->name('send_donasi_notification_closure') // Memberi nama pada task (opsional tapi bagus)
+  ->name('send_donasi_notification_closure') 
   ->withoutOverlapping(); 
 
-// Jadwalkan command barang:auto-donate
 app()->singleton(Schedule::class, function ($app) {
     $schedule = new Schedule();
+    $schedule->command('notification:check-h3')->everyTenSeconds();
 
-    // Menjadwalkan command untuk dijalankan setiap hari pukul 00:00
-    $schedule->command('barang:auto-donate')->everyMinute();
+    $schedule->command('notification:check-hari-h')->everyTenSeconds();
 
-    // Notifikasi H-3 setiap hari jam 9 pagi
-    $schedule->command('notification:check-h3')->everyMinute();
+    //$schedule->command('barang:auto-donate')->everyTenMinutes();
 
-    // Notifikasi Hari H setiap hari jam 9 pagi
-    $schedule->command('notification:check-hari-h')->everyMinute();
     return $schedule;
 });

@@ -528,7 +528,6 @@ class NotificationController
                 'type' => 'pengambilan_pembeli_notification',
                 'id_pembeli' => (string)$id_pembeli // Sebaiknya sertakan ID untuk navigasi di aplikasi
             ]);
-
         // 2. Menambahkan baris yang hilang untuk MENGIRIM pesan
         $result = $this->messaging->send($message);
         
