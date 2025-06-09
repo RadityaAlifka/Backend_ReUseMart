@@ -200,7 +200,7 @@ class PengambilanController
                 if ($pengambilan->id_pembeli && $pengambilan->id_transaksi) {
                     $transaksi = Transaksi::find($pengambilan->id_transaksi);
                     if ($transaksi) {
-                        $transaksi->status_pembayaran = 'selesai';
+                        $transaksi->status_transaksi = 'transaksi selesai';
                         $transaksi->save();
                         
                         \Log::info('Updated transaksi status', [
