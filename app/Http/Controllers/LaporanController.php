@@ -12,6 +12,79 @@ use Illuminate\Support\Facades\DB;
 class LaporanController 
 {
     /**
+     * Menampilkan dan mengunduh laporan komisi bulanan per produk.
+     * @param Request $request (param: bulan, tahun, mode = [json|pdf])
+     */
+    public function laporanKomisiBulananPerProduk(Request $request)
+    {
+        
+        $bulan = $request->input('bulan', date('n'));
+        $tahun = $request->input('tahun', date('Y'));
+        $mode = $request->input('mode', 'json');
+
+        // Ambil transaksi yang lunas di bulan & tahun
+        $transaksis = \App\Models\Transaksi::whereYear('tgl_lunas', $tahun)
+            ->whereMonth('tgl_lunas', $bulan)
+            ->with(['detailtransaksi.barang.penitipan'])
+            ->get();
+
+        $result = [];
+        foreach ($transaksis as $transaksi) {
+            foreach ($transaksi->detailtransaksi as $detail) {
+                $barang = $detail->barang;
+                if (!$barang || !$barang->penitipan) continue;
+                $penitipan = $barang->penitipan;
+
+                // Kode Produk: Huruf kapital pertama nama barang + id_barang
+                $kodeProduk = strtoupper(substr($barang->nama_barang, 0, 1)) . $barang->id_barang;
+
+                $hargaJual = $barang->harga;
+                $tanggalMasuk = $penitipan->tanggal_penitipan;
+                $tanggalLaku = $transaksi->tgl_lunas;
+                $selisihHariJual = \Carbon\Carbon::parse($tanggalLaku)->diffInDays(\Carbon\Carbon::parse($tanggalMasuk));
+
+                // Komisi & Bonus sesuai rumus TransaksiController
+                $totalPersenKomisi = $penitipan->perpanjangan ? 0.30 : 0.20;
+                $nilaiTotalKomisi = $hargaJual * $totalPersenKomisi;
+                $nilaiKomisiHunter = 0;
+                if (!is_null($penitipan->id_hunter)) {
+                    $nilaiKomisiHunter = $nilaiTotalKomisi * 0.05;
+                }
+                $nilaiKomisiOwnerAwal = $nilaiTotalKomisi - $nilaiKomisiHunter;
+                $pengalihanKePenitip = 0;
+                if ($selisihHariJual < 7) {
+                    $pengalihanKePenitip = $nilaiTotalKomisi * 0.10;
+                }
+                $nilaiKomisiOwnerFinal = $nilaiKomisiOwnerAwal - $pengalihanKePenitip;
+
+                $result[] = [
+                    'kode_produk' => $kodeProduk,
+                    'nama_produk' => $barang->nama_barang,
+                    'harga_jual' => $hargaJual,
+                    'tanggal_masuk' => $tanggalMasuk,
+                    'tanggal_laku' => $tanggalLaku,
+                    'komisi_hunter' => $nilaiKomisiHunter,
+                    'komisi_reusemart' => $nilaiKomisiOwnerFinal,
+                    'bonus_penitip' => $pengalihanKePenitip,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'data' => $result,
+            'cetak' => [
+                'judul' => 'LAPORAN KOMISI BULANAN',
+                'alamat' => 'Jl. Green Eco Park No. 456 Yogyakarta',
+                'nama_toko' => 'ReUse Mart',
+                'tanggal_cetak' => now()->format('j F Y'),
+            ]
+        ]);
+    }
+
+    /**
      * Display monthly sales report
      *
      * @return \Illuminate\Http\Response
