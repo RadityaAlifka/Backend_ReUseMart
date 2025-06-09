@@ -10,15 +10,22 @@ use App\Models\Penitip;
 use App\Models\Donasi;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Http\Controllers\NotificationController;
+
+
 
 class BarangController 
 {
     protected $penitipController;
+    protected $notificationController;
 
-    public function __construct(PenitipController $penitipController)
-    {
-        $this->penitipController = $penitipController;
-    }
+    public function __construct(NotificationController $notificationController, PenitipController $penitipController)
+{
+    $this->notificationController = $notificationController;
+    $this->penitipController = $penitipController;
+}
+
+
     public function index()
     {
         try {
@@ -178,45 +185,59 @@ class BarangController
     }
 
     public function update(Request $request, $id)
-    {
-        $barang = Barang::find($id);
+{
+    $barang = Barang::find($id);
 
-        if (!$barang) {
-            return response()->json(['message' => 'Barang not found'], 404);
-        }
-
-        $validatedData = $request->validate([
-            'id_kategori' => 'sometimes|required|exists:kategori_barangs,id_kategori',
-            'id_penitipan' => 'sometimes|required|exists:penitipans,id_penitipan',
-            'id_donasi' => 'nullable|exists:donasis,id_donasi',
-            'nama_barang' => 'sometimes|required|string|max:255',
-            'deskripsi_barang' => 'sometimes|required|string',
-            'garansi' => 'nullable|string|max:255',
-            'tanggal_garansi' => 'nullable|date',
-            'harga' => 'sometimes|required|numeric',
-            'status_barang' => 'sometimes|required|string|max:50',
-            'berat' => 'sometimes|required|numeric',
-            'tanggal_keluar' => 'nullable|date',
-            'gambar1' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar1
-            'gambar2' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar2
-        ]);
-
-        // Perbarui gambar jika ada file baru
-        if ($request->hasFile('gambar1')) {
-            $validatedData['gambar1'] = $request->file('gambar1')->store('images/barang');
-        }
-
-        if ($request->hasFile('gambar2')) {
-            $validatedData['gambar2'] = $request->file('gambar2')->store('images/barang');
-        }
-
-        $barang->update($validatedData);
-
-        return response()->json([
-            'message' => 'Barang updated successfully',
-            'data' => $barang->load(['kategori_barang', 'penitipan', 'donasi'])
-        ]);
+    if (!$barang) {
+        return response()->json(['message' => 'Barang not found'], 404);
     }
+
+    $validatedData = $request->validate([
+        'id_kategori' => 'sometimes|required|exists:kategori_barangs,id_kategori',
+        'id_penitipan' => 'sometimes|required|exists:penitipans,id_penitipan',
+        'id_donasi' => 'nullable|exists:donasis,id_donasi',
+        'nama_barang' => 'sometimes|required|string|max:255',
+        'deskripsi_barang' => 'sometimes|required|string',
+        'garansi' => 'nullable|string|max:255',
+        'tanggal_garansi' => 'nullable|date',
+        'harga' => 'sometimes|required|numeric',
+        'status_barang' => 'sometimes|required|string|max:50',
+        'berat' => 'sometimes|required|numeric',
+        'tanggal_keluar' => 'nullable|date',
+        'gambar1' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+        'gambar2' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    // Perbarui gambar jika ada file baru
+    if ($request->hasFile('gambar1')) {
+        $validatedData['gambar1'] = $request->file('gambar1')->store('images/barang');
+    }
+
+    if ($request->hasFile('gambar2')) {
+        $validatedData['gambar2'] = $request->file('gambar2')->store('images/barang');
+    }
+
+    $oldStatus = $barang->status_barang;
+
+$barang->update($validatedData);
+$barang->load('penitipan'); // pastikan relasi dimuat
+
+if ($oldStatus !== 'laku' && isset($validatedData['status_barang']) && $validatedData['status_barang'] === 'laku') {
+    $this->notificationController->sendBarangLakuNotification(
+        $barang->penitipan->id_penitip ?? null,
+        $barang->nama_barang
+    );
+}
+
+
+
+
+    return response()->json([
+        'message' => 'Barang updated successfully',
+        'data' => $barang->load(['kategori_barang', 'penitipan', 'donasi'])
+    ]);
+}
+
     public function barangBergaransi()
     {
         $barang = Barang::with(['kategori_barang', 'penitipan', 'donasi'])
@@ -375,6 +396,31 @@ public function checkStokBarang($id)
             'message' => 'Hasil pencarian untuk: ' . $keyword,
             'data' => $barang
         ], 200);
+ 
     }
+
+
+    public function getBarangForTanggal()
+{
+    $barang = Barang::where('status_barang', 'Tersedia')
+        ->with('penitipan')
+        ->get()
+        ->map(function ($item) {
+            return [
+                'id_barang' => $item->id_barang,
+                'nama_barang' => $item->nama_barang,
+                'harga' => $item->harga,
+                'status_barang' => $item->status_barang,
+                'tanggal_penitipan' => $item->penitipan?->tanggal_penitipan,
+            ];
+        });
+
+    return response()->json([
+        'message' => 'Daftar barang tersedia',
+        'data' => $barang
+    ]);
+}
+
+
 
 }

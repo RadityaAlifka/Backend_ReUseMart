@@ -590,34 +590,37 @@ class NotificationController
             return false;
         }
     }
-    public function notifyBarangLaku($barang)
-    {
-        try {
-            $topic = 'penitip_' . $barang->penitipan->id_penitip;
-            \Log::info('Sending barang laku notification to topic: ' . $topic);
-            
-            $message = CloudMessage::withTarget('topic', $topic)
-                ->withNotification(Notification::create(
-                    'Barang Laku',
-                    "Barang '{$barang->nama_barang}' telah terjual"
-                ))
-                ->withData([
-                    'id_barang' => (string)$barang->id_barang,
-                    'type' => 'barang_laku_notification'
-                ]);
 
-            $this->messaging->send($message);
-            \Log::info('Barang laku notification sent successfully to topic: ' . $topic);
+    public function sendBarangLakuNotification($id_penitip, $nama_barang)
+{
+    try {
+        $topic = 'penitip_' . $id_penitip;
+        \Log::info("Sending 'barang laku' notification to topic: $topic for barang: $nama_barang");
 
-            return response()->json([
-                'message' => 'Barang laku notification sent successfully'
+        $message = CloudMessage::withTarget('topic', $topic)
+            ->withNotification(Notification::create(
+                'Barang Telah Terjual',
+                "Barang '{$nama_barang}' milik Anda telah berhasil terjual!"
+            ))
+            ->withData([
+                'type' => 'barang_laku_notification',
+                'nama_barang' => $nama_barang
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Failed to send barang laku notification: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Failed to send barang laku notification',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+
+        $this->messaging->send($message);
+
+        \Log::info('Barang laku notification sent successfully to topic: ' . $topic);
+
+        return response()->json([
+            'message' => 'Barang laku notification sent successfully'
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Failed to send barang laku notification: ' . $e->getMessage());
+        return response()->json([
+            'message' => 'Failed to send barang laku notification',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 } 

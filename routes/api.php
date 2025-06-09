@@ -86,7 +86,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
     Route::get('/cs/diskusi', [DiskusiController::class, 'index']);
     Route::delete('/penitip/{id}', [PenitipController::class, 'de   stroy']);
     Route::get('/cs/pegawai', [PegawaiController::class,'getPegawaiCSFromToken']);
-    
+    Route::put('/cs/barang/{id}', [BarangController::class,'update']);
 });// Route
 // 
 // 
@@ -198,6 +198,9 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
+Route::get('/penitipan/tanggal', [PenitipanController::class, 'getByTanggal']) ;
+Route::get('/barang/tanggal', [BarangController::class, 'getBarangForTanggal']);
+
 
 Route::prefix('pengambilan')->group(function () {
     Route::get('/', [PengambilanController::class, 'index']);
