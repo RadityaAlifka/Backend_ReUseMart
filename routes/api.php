@@ -158,6 +158,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
     Route::get('/laporan/bulanan', [LaporanController::class, 'getMonthlySalesReport']);
     Route::get('/laporan/stok', [LaporanController::class, 'laporanStokGudang']);
+    Route::get('/laporan/komisi', [LaporanController::class, 'laporanKomisiBulananPerProduk']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -197,6 +198,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::put('/edit-pengambilan/{id}', [PengambilanController::class, 'editPengambilan']);
     Route::post('/proses-komisi/{id}', [TransaksiController::class, 'prosesKomisiTransaksi']);
 });
+
+// Endpoint laporan komisi bulanan per produk
 
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
