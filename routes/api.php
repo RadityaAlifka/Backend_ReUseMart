@@ -159,6 +159,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::get('/laporan/bulanan', [LaporanController::class, 'getMonthlySalesReport']);
     Route::get('/laporan/perkategori', [LaporanController::class, 'getYearlyReportByCategory']);
     Route::get('/laporan/penitipan-habis', [LaporanController::class, 'laporanPenitipanHabis']);
+    Route::get('/laporan/stok', [LaporanController::class, 'laporanStokGudang']);
+    Route::get('/laporan/komisi', [LaporanController::class, 'laporanKomisiBulananPerProduk']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -199,6 +201,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::post('/proses-komisi/{id}', [TransaksiController::class, 'prosesKomisiTransaksi']);
 });
 
+// Endpoint laporan komisi bulanan per produk
+
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
 
 Route::get('/penitipan/{id}', [PenitipanController::class, 'getIdPenitip']);
@@ -234,6 +238,8 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout']);
         Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
+        Route::get('/user/profile', [MobileAuthController::class, 'getProfile']);
+        Route::post('/user/profile', [MobileAuthController::class, 'updateProfile']);
     });
 });
 

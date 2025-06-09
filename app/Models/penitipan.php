@@ -33,7 +33,8 @@ class Penitipan extends Model
 		'id_penitip' => 'int',
 		'id_pegawai' => 'int',
 		'tanggal_penitipan' => 'datetime',
-		'batas_penitipan' => 'datetime'
+		'batas_penitipan' => 'datetime',
+		'perpanjangan'	=> 'boolean'
 	];
 
 	protected $fillable = [
@@ -42,6 +43,7 @@ class Penitipan extends Model
 		'id_hunter',
 		'tanggal_penitipan',
 		'batas_penitipan',
+		'perpanjangan'
 	];
 
 	public function penitip()
@@ -56,5 +58,9 @@ class Penitipan extends Model
 	public function pegawai()
 	{
 		return $this->belongsTo(Pegawai::class, 'id_pegawai');
+	}
+	public function hunter()
+	{
+		return $this->belongsTo(Pegawai::class, 'id_hunter');
 	}
 }
