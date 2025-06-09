@@ -89,5 +89,9 @@ class Pegawai extends Model
 	{
 		return $this->hasMany(Penitipan::class, 'id_pegawai');
 	}
+	public function penitipanHunter()
+	{
+		return $this->hasMany(Penitipan::class, 'id_hunter');
+	}
 
 }

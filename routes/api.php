@@ -157,6 +157,7 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::get('/barang/menunggu-donasi', [BarangController::class, 'barangMenungguDonasi']);
     Route::put('/donasi/{id}', [DonasiController::class, 'update']);
     Route::get('/laporan/bulanan', [LaporanController::class, 'getMonthlySalesReport']);
+    Route::get('/laporan/stok', [LaporanController::class, 'laporanStokGudang']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
