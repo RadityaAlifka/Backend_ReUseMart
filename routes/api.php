@@ -232,6 +232,8 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [MobileAuthController::class, 'logout']);
         Route::post('/update-fcm-token', [MobileAuthController::class, 'updateFcmToken']);
+        Route::get('/user/profile', [MobileAuthController::class, 'getProfile']);
+        Route::post('/user/profile', [MobileAuthController::class, 'updateProfile']);
     });
 });
 
