@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Pembeli;
 use App\Http\Controllers\NotificationController;
+use Carbon\Carbon;
 
 class TransaksiController 
 {
@@ -155,82 +156,101 @@ class TransaksiController
         return response()->json($transaksi);
     }
 
-    public function prosesKomisiTransaksi($id_transaksi)
-    {
-        DB::beginTransaction();
-        try {
-            $transaksi = Transaksi::with(['detailtransaksi.barang', 'pembeli'])->find($id_transaksi);
-            if (!$transaksi) {
-                return response()->json(['message' => 'Transaksi not found'], 404);
-            }
-
-            $totalKomisi = 0;
-            $totalPembelanjaan = 0;
-
-            foreach ($transaksi->detailtransaksi as $detail) {
-                $barang = $detail->barang;
-                if (!$barang) continue;
-
-                $penitipan = Penitipan::find($barang->id_penitipan);
-                if (!$penitipan) continue;
-
-                // Cek owner (pegawai dengan jabatan owner)
-                $owner = Pegawai::whereHas('jabatan', function($q) {
-                    $q->where('nama_jabatan', 'owner');
-                })->first();
-
-                // Hitung komisi
-                $komisiPersen = $penitipan->perpanjangan ? 0.3 : 0.2;
-                $komisi = $barang->harga * $komisiPersen;
-                $totalKomisi += $komisi;
-
-                // Tambah komisi ke owner
-                if ($owner) {
-                    $owner->komisi += $komisi;
-                    $owner->save();
-                }
-
-                // Tambah saldo ke penitip
-                $penitip = Penitip::find($penitipan->id_penitip);
-                if ($penitip) {
-                    $saldoPenitip = $barang->harga - $komisi;
-
-                    // Cek bonus: jika barang laku < 7 hari sejak tanggal_penitipan
-                    if (
-                        $penitipan->tanggal_penitipan &&
-                        $transaksi->tgl_lunas &&
-                        \Carbon\Carbon::parse($transaksi->tgl_lunas)->diffInDays(\Carbon\Carbon::parse($penitipan->tanggal_penitipan)) < 7
-                    ) {
-                        $bonus = $komisi * 0.1;
-                        $saldoPenitip += $bonus;
-                    }
-
-                    $penitip->saldo += $saldoPenitip;
-                    $penitip->save();
-                }
-
-                $totalPembelanjaan += $barang->harga;
-            }
-
-            // Tambah poin ke pembeli
-            $pembeli = $transaksi->pembeli;
-            if ($pembeli) {
-                $poinBaru = floor($totalPembelanjaan / 10000);
-                $pembeli->poin += $poinBaru;
-                $pembeli->save();
-            }
-
-            DB::commit();
-            return response()->json([
-                'message' => 'Komisi, saldo penitip, dan poin pembeli berhasil diproses',
-                'total_komisi' => $totalKomisi,
-                'total_pembelanjaan' => $totalPembelanjaan,
-                'poin_ditambahkan' => $poinBaru ?? 0
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Gagal memproses', 'error' => $e->getMessage()], 500);
+   public function prosesKomisiTransaksi($id_transaksi)
+{
+    DB::beginTransaction();
+    try {
+        $transaksi = Transaksi::with(['detailtransaksi.barang.penitipan', 'pembeli'])->find($id_transaksi);
+        if (!$transaksi) {
+            return response()->json(['message' => 'Transaksi not found'], 404);
         }
-    }
 
+        $owner = Pegawai::whereHas('jabatan', function($q) {
+            $q->where('nama_jabatan', 'owner');
+        })->first();
+
+        if (!$owner) {
+            throw new \Exception("Data 'owner' tidak ditemukan di tabel pegawai.");
+        }
+
+        $totalPembelanjaan = 0;
+        $poinDitambahkan = 0;
+
+        foreach ($transaksi->detailtransaksi as $detail) {
+            $barang = $detail->barang;
+            $penitipan = $barang->penitipan ?? null;
+
+            if (!$barang || !$penitipan) continue;
+
+            $hargaBarang = $barang->harga;
+            $selisihHariJual = Carbon::parse($transaksi->tgl_lunas)->diffInDays(Carbon::parse($penitipan->tanggal_penitipan));
+            
+            // 1. Tentukan TOTAL Persen Komisi untuk ReUseMart berdasarkan perpanjangan
+            $totalPersenKomisi = $penitipan->perpanjangan ? 0.30 : 0.20;
+
+            // 2. Hitung TOTAL Nilai Komisi dalam Rupiah
+            $nilaiTotalKomisi = $hargaBarang * $totalPersenKomisi;
+
+            // 3. Hitung bagian untuk Hunter (jika ada) dari TOTAL nilai komisi
+            $nilaiKomisiHunter = 0;
+            if (!is_null($penitipan->id_hunter)) {
+                // Hunter dapat 5% DARI NILAI TOTAL KOMISI
+                $nilaiKomisiHunter = $nilaiTotalKomisi * 0.05;
+            }
+
+            // 4. Hitung bagian awal untuk Owner (Total Komisi - Jatah Hunter)
+            $nilaiKomisiOwnerAwal = $nilaiTotalKomisi - $nilaiKomisiHunter;
+
+            // 5. Hitung pengalihan ke penitip jika penjualan cepat (< 7 hari)
+            $pengalihanKePenitip = 0;
+            if ($selisihHariJual < 7) {
+                // Bonus 10% dihitung dari TOTAL nilai komisi
+                $pengalihanKePenitip = $nilaiTotalKomisi * 0.10;
+            }
+
+            // 6. Hitung bagian final untuk Owner (Bagian awal - pengalihan ke penitip)
+            $nilaiKomisiOwnerFinal = $nilaiKomisiOwnerAwal - $pengalihanKePenitip;
+
+            // 7. Update semua pihak
+            $owner->komisi += $nilaiKomisiOwnerFinal;
+
+            if ($nilaiKomisiHunter > 0) {
+                $hunter = Pegawai::find($penitipan->id_hunter);
+                if ($hunter) {
+                    $hunter->komisi += $nilaiKomisiHunter;
+                    $hunter->save();
+                }
+            }
+
+            $penitip = Penitip::find($penitipan->id_penitip);
+            if ($penitip) {
+                $saldoDasar = $hargaBarang - $nilaiTotalKomisi;
+                $penitip->saldo += ($saldoDasar + $pengalihanKePenitip);
+                $penitip->save();
+            }
+
+            $totalPembelanjaan += $hargaBarang;
+        }
+
+        $owner->save();
+
+        $pembeli = $transaksi->pembeli;
+        if ($pembeli) {
+            $poinDitambahkan = floor($totalPembelanjaan / 10000);
+            $pembeli->poin += $poinDitambahkan;
+            $pembeli->save();
+        }
+
+        DB::commit();
+        return response()->json([
+            'message' => 'Komisi, saldo penitip, dan poin pembeli berhasil diproses (logika final).',
+            'total_pembelanjaan' => $totalPembelanjaan,
+            'poin_ditambahkan' => $poinDitambahkan
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Gagal memproses transaksi', 'error' => $e->getMessage()], 500);
+    }
+}
 }
