@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
+use Carbon\Carbon;
 
 class NotificationController
 {
@@ -356,103 +357,108 @@ class NotificationController
     public function sendDeliveryScheduleNotification($pengiriman)
     {
         try {
-            // Dapatkan data yang diperlukan
+            // Dapatkan data yang diperlukan dari relasi yang sudah di-load
             $transaksi = $pengiriman->transaksi;
             $pembeli = $transaksi->pembeli;
             $kurir = $pengiriman->pegawai;
             
-            // Logging untuk debug
-            \Log::info('Sending delivery schedule notifications', [
+            // Logging awal untuk debug
+            \Log::info('Attempting to send delivery schedule notifications', [
                 'pengiriman_id' => $pengiriman->id_pengiriman,
                 'kurir_id' => $kurir ? $kurir->id_pegawai : 'null',
                 'pembeli_id' => $pembeli ? $pembeli->id_pembeli : 'null',
             ]);
             
-            // Format tanggal pengiriman
-            $tanggal = \Carbon\Carbon::parse($pengiriman->tanggal_pengiriman)->format('d M Y');
+            // Format tanggal pengiriman agar mudah dibaca
+            // Mengatur locale ke Bahasa Indonesia agar nama bulan sesuai
+            Carbon::setLocale('id');
+            $tanggal = Carbon::parse($pengiriman->tanggal_pengiriman)->isoFormat('D MMMM YYYY');
             
-            // Notifikasi untuk pembeli
+            // --- Notifikasi untuk Pembeli ---
             if ($pembeli) {
                 try {
                     $topic_pembeli = 'pembeli_' . $pembeli->id_pembeli;
-                    \Log::info('Sending notification to pembeli', ['topic' => $topic_pembeli]);
+                    \Log::info('Preparing notification for pembeli', ['topic' => $topic_pembeli]);
                     
                     $message_pembeli = CloudMessage::withTarget('topic', $topic_pembeli)
                         ->withNotification(Notification::create(
                             'Update Jadwal Pengiriman',
-                            "Pesanan Anda akan dikirim pada tanggal {$tanggal}"
+                            "Pesanan Anda akan dikirim pada tanggal {$tanggal}."
                         ))
                         ->withData([
                             'type' => 'delivery_schedule',
                             'id_pengiriman' => (string)$pengiriman->id_pengiriman
                         ]);
                     $this->messaging->send($message_pembeli);
-                    \Log::info('Successfully sent notification to pembeli');
+                    \Log::info('Successfully sent notification to pembeli', ['pembeli_id' => $pembeli->id_pembeli]);
                 } catch (\Exception $e) {
-                    \Log::error('Failed to send notification to pembeli: ' . $e->getMessage());
+                    \Log::error('Failed to send notification to pembeli: ' . $e->getMessage(), ['pembeli_id' => $pembeli->id_pembeli]);
                 }
             }
             
-            // Notifikasi untuk kurir
+            // --- Notifikasi untuk Kurir ---
             if ($kurir) {
                 try {
                     $topic_kurir = 'kurir_' . $kurir->id_pegawai;
-                    \Log::info('Sending notification to kurir', [
-                        'topic' => $topic_kurir,
-                        'kurir_id' => $kurir->id_pegawai,
-                        'jabatan' => $kurir->jabatan ? $kurir->jabatan->nama_jabatan : 'unknown'
-                    ]);
+                    \Log::info('Preparing notification for kurir', ['topic' => $topic_kurir]);
                     
                     $message_kurir = CloudMessage::withTarget('topic', $topic_kurir)
                         ->withNotification(Notification::create(
                             'Jadwal Pengiriman Baru',
-                            "Anda memiliki jadwal pengiriman baru pada tanggal {$tanggal}"
+                            "Anda memiliki jadwal pengiriman baru pada tanggal {$tanggal}."
                         ))
                         ->withData([
                             'type' => 'delivery_schedule',
                             'id_pengiriman' => (string)$pengiriman->id_pengiriman
                         ]);
                     $this->messaging->send($message_kurir);
-                    \Log::info('Successfully sent notification to kurir');
+                    \Log::info('Successfully sent notification to kurir', ['kurir_id' => $kurir->id_pegawai]);
                 } catch (\Exception $e) {
-                    \Log::error('Failed to send notification to kurir: ' . $e->getMessage(), [
-                        'kurir_id' => $kurir->id_pegawai,
-                        'error' => $e->getMessage()
-                    ]);
+                    \Log::error('Failed to send notification to kurir: ' . $e->getMessage(), ['kurir_id' => $kurir->id_pegawai]);
                 }
             } else {
-                \Log::warning('No kurir found for pengiriman', ['pengiriman_id' => $pengiriman->id_pengiriman]);
+                \Log::warning('No kurir found for pengiriman, skipping notification.', ['pengiriman_id' => $pengiriman->id_pengiriman]);
             }
             
-            // Notifikasi untuk penjual
-            $detailTransaksi = $transaksi->detailtransaksi;
-            if ($detailTransaksi) {
+            // --- Notifikasi untuk Penitip (Penjual) ---
+            // Mengambil data penitip melalui relasi bertingkat
+            $detailTransaksi = $transaksi->detailtransaksi->first(); // Asumsi satu detail per transaksi untuk kasus ini
+            if ($detailTransaksi && $detailTransaksi->barang && $detailTransaksi->barang->penitipan && $detailTransaksi->barang->penitipan->penitip) {
+                $penitip = $detailTransaksi->barang->penitipan->penitip;
                 $barang = $detailTransaksi->barang;
-                if ($barang) {
-                    $penitipan = $barang->penitipan;
-                    if ($penitipan) {
-                        $penitip = $penitipan->penitip;
-                        if ($penitip) {
-                            $topic_penjual = 'penitip_' . $penitip->id_penitip;
-                            $message_penjual = CloudMessage::withTarget('topic', $topic_penjual)
-                                ->withNotification(Notification::create(
-                                    'Update Pengiriman Barang',
-                                    "Barang Anda akan dikirim pada tanggal {$tanggal}"
-                                ))
-                                ->withData([
-                                    'type' => 'delivery_schedule',
-                                    'id_pengiriman' => (string)$pengiriman->id_pengiriman
-                                ]);
-                            $this->messaging->send($message_penjual);
-                        }
-                    }
+
+                try {
+                    $topic_penitip = 'penitip_' . $penitip->id_penitip;
+                    \Log::info('Preparing notification for penitip', ['topic' => $topic_penitip]);
+                    
+                    $message_penitip = CloudMessage::withTarget('topic', $topic_penitip)
+                        ->withNotification(Notification::create(
+                            'Update Pengiriman Barang',
+                            "Barang titipan Anda '{$barang->nama_barang}' akan dikirim ke pembeli pada {$tanggal}."
+                        ))
+                        ->withData([
+                            'type' => 'delivery_schedule',
+                            'id_pengiriman' => (string)$pengiriman->id_pengiriman,
+                            'id_barang' => (string)$barang->id_barang,
+                        ]);
+
+                    $this->messaging->send($message_penitip);
+                    \Log::info('Successfully sent notification to penitip', ['penitip_id' => $penitip->id_penitip]);
+
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send notification to penitip: ' . $e->getMessage(), ['penitip_id' => $penitip->id_penitip]);
                 }
+            } else {
+                 \Log::warning('No penitip found for this transaction, skipping notification.', ['transaksi_id' => $transaksi->id_transaksi]);
             }
 
-            \Log::info('Delivery schedule notifications completed');
+            \Log::info('Delivery schedule notification process completed for all parties.');
             return true;
         } catch (\Exception $e) {
-            \Log::error('Failed to send delivery schedule notifications: ' . $e->getMessage());
+            \Log::error('A critical error occurred in sendDeliveryScheduleNotification function: ' . $e->getMessage(), [
+                'pengiriman_id' => isset($pengiriman) ? $pengiriman->id_pengiriman : 'unknown',
+                'trace' => $e->getTraceAsString() // Menambahkan trace untuk debug lebih dalam
+            ]);
             return false;
         }
     }
@@ -503,20 +509,53 @@ class NotificationController
     }
 
     public function NotifyPengambilanPembeli($id_pembeli)
-    {
+{
+    try {
         $topic = 'pembeli_' . $id_pembeli;
+        
+        // 1. Menambahkan log untuk visibilitas
+        \Log::info('Attempting to send pengambilan notification to pembeli', [
+            'topic' => $topic,
+            'id_pembeli' => $id_pembeli
+        ]);
+
         $message = CloudMessage::withTarget('topic', $topic)
             ->withNotification(Notification::create(
-                'Pengambilan Barang',
-                "Barang anda telah diambil"
+                'Pengambilan Barang Berhasil', // Judul bisa disesuaikan
+                'Barang Anda telah berhasil diambil. Terima kasih telah berbelanja!' // Body bisa disesuaikan
             ))
             ->withData([
-                'type' => 'pengambilan_pembeli_notification'
+                'type' => 'pengambilan_pembeli_notification',
+                'id_pembeli' => (string)$id_pembeli // Sebaiknya sertakan ID untuk navigasi di aplikasi
             ]);
-            if (!in_array(strtolower($barang->status_barang), ['masa titip habis', 'menunggu donasi'])) {
-    return response()->json(['message' => 'Barang tidak dapat didonasikan'], 400);
-}
+        // 2. Menambahkan baris yang hilang untuk MENGIRIM pesan
+        $result = $this->messaging->send($message);
+        
+        // 3. Menambahkan log keberhasilan
+        \Log::info('Pengambilan notification sent successfully to pembeli', [
+            'topic' => $topic,
+            'result' => $result
+        ]);
+        
+        // Response ini opsional, karena fungsi ini dipanggil dari controller lain
+        return response()->json([
+            'message' => 'Notification sent successfully to pembeli',
+            'topic' => $topic
+        ]);
+
+    } catch (\Exception $e) {
+        // 4. Menambahkan penanganan error yang lengkap
+        \Log::error('Failed to send pengambilan notification to pembeli', [
+            'topic' => 'pembeli_' . $id_pembeli,
+            'error' => $e->getMessage()
+        ]);
+        
+        return response()->json([
+            'message' => 'Failed to send notification to pembeli',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     // Tambahkan method untuk verifikasi subscription
     public function verifyTopicSubscription($topic)
@@ -551,34 +590,37 @@ class NotificationController
             return false;
         }
     }
-    public function notifyBarangLaku($barang)
-    {
-        try {
-            $topic = 'penitip_' . $barang->penitipan->id_penitip;
-            \Log::info('Sending barang laku notification to topic: ' . $topic);
-            
-            $message = CloudMessage::withTarget('topic', $topic)
-                ->withNotification(Notification::create(
-                    'Barang Laku',
-                    "Barang '{$barang->nama_barang}' telah terjual"
-                ))
-                ->withData([
-                    'id_barang' => (string)$barang->id_barang,
-                    'type' => 'barang_laku_notification'
-                ]);
 
-            $this->messaging->send($message);
-            \Log::info('Barang laku notification sent successfully to topic: ' . $topic);
+    public function sendBarangLakuNotification($id_penitip, $nama_barang)
+{
+    try {
+        $topic = 'penitip_' . $id_penitip;
+        \Log::info("Sending 'barang laku' notification to topic: $topic for barang: $nama_barang");
 
-            return response()->json([
-                'message' => 'Barang laku notification sent successfully'
+        $message = CloudMessage::withTarget('topic', $topic)
+            ->withNotification(Notification::create(
+                'Barang Telah Terjual',
+                "Barang '{$nama_barang}' milik Anda telah berhasil terjual!"
+            ))
+            ->withData([
+                'type' => 'barang_laku_notification',
+                'nama_barang' => $nama_barang
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Failed to send barang laku notification: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Failed to send barang laku notification',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+
+        $this->messaging->send($message);
+
+        \Log::info('Barang laku notification sent successfully to topic: ' . $topic);
+
+        return response()->json([
+            'message' => 'Barang laku notification sent successfully'
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Failed to send barang laku notification: ' . $e->getMessage());
+        return response()->json([
+            'message' => 'Failed to send barang laku notification',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 } 

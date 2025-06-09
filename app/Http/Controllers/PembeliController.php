@@ -7,9 +7,12 @@ use App\Models\Alamat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\NotificationController;
 
 class PembeliController 
 {
+
+    protected $penitipController;
     // Get all pembeli
     public function index()
     {
@@ -162,6 +165,9 @@ class PembeliController
 
         return response()->json($pembeli);
     }
+
+    
+
 
     
 }
