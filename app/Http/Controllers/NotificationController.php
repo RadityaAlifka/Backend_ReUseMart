@@ -623,4 +623,79 @@ class NotificationController
     }
 }
 
+ public function sendOnTheWayNotification($pengiriman)
+    {
+        try {
+            // Ambil data yang diperlukan dari relasi
+            $transaksi = $pengiriman->transaksi;
+            $pembeli = $transaksi->pembeli;
+            $kurir = $pengiriman->pegawai;
+            $nama_kurir = $kurir ? $kurir->nama_pegawai : 'Kurir Tidak Dikenal';
+
+            // Ambil nama barang pertama dari transaksi (asumsi ada setidaknya satu barang)
+            $nama_barang = 'Barang pesanan Anda';
+            if ($transaksi->detailtransaksi->isNotEmpty() && $transaksi->detailtransaksi->first()->barang) {
+                $nama_barang = $transaksi->detailtransaksi->first()->barang->nama_barang;
+            }
+
+            \Log::info('Mencoba mengirim notifikasi "barang dalam perjalanan"', [
+                'pengiriman_id' => $pengiriman->id_pengiriman,
+                'nama_kurir' => $nama_kurir
+            ]);
+
+            // --- Notifikasi untuk Pembeli ---
+            if ($pembeli) {
+                try {
+                    $topic_pembeli = 'pembeli_' . $pembeli->id_pembeli;
+                    $message_pembeli = CloudMessage::withTarget('topic', $topic_pembeli)
+                        ->withNotification(Notification::create(
+                            'Pesanan Anda Dalam Perjalanan',
+                            "Barang pesanan Anda sedang dalam perjalanan dibawa oleh {$nama_kurir}."
+                        ))
+                        ->withData([
+                            'type' => 'on_the_way_notification',
+                            'id_pengiriman' => (string)$pengiriman->id_pengiriman
+                        ]);
+                    $this->messaging->send($message_pembeli);
+                    \Log::info('Notifikasi "dalam perjalanan" berhasil dikirim ke pembeli', ['pembeli_id' => $pembeli->id_pembeli]);
+                } catch (\Exception $e) {
+                    \Log::error('Gagal mengirim notifikasi "dalam perjalanan" ke pembeli: ' . $e->getMessage(), ['pembeli_id' => $pembeli->id_pembeli]);
+                }
+            }
+
+            // --- Notifikasi untuk Penitip ---
+            // Asumsi penitip terhubung melalui barang di detail transaksi
+            $detailTransaksi = $transaksi->detailtransaksi->first();
+            if ($detailTransaksi && $detailTransaksi->barang && $detailTransaksi->barang->penitipan && $detailTransaksi->barang->penitipan->penitip) {
+                $penitip = $detailTransaksi->barang->penitipan->penitip;
+                try {
+                    $topic_penitip = 'penitip_' . $penitip->id_penitip;
+                    $message_penitip = CloudMessage::withTarget('topic', $topic_penitip)
+                        ->withNotification(Notification::create(
+                            'Barang Anda Dalam Perjalanan',
+                            "Barang titipan Anda '{$nama_barang}' sedang dalam perjalanan untuk dikirim ke pembeli oleh {$nama_kurir}."
+                        ))
+                        ->withData([
+                            'type' => 'on_the_way_notification',
+                            'id_pengiriman' => (string)$pengiriman->id_pengiriman,
+                            'id_barang' => (string)$detailTransaksi->barang->id_barang,
+                        ]);
+                    $this->messaging->send($message_penitip);
+                    \Log::info('Notifikasi "dalam perjalanan" berhasil dikirim ke penitip', ['penitip_id' => $penitip->id_penitip]);
+                } catch (\Exception $e) {
+                    \Log::error('Gagal mengirim notifikasi "dalam perjalanan" ke penitip: ' . $e->getMessage(), ['penitip_id' => $penitip->id_penitip]);
+                }
+            } else {
+                \Log::warning('Tidak ada penitip yang ditemukan untuk transaksi ini, melewati notifikasi "dalam perjalanan".', ['transaksi_id' => $transaksi->id_transaksi]);
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Terjadi kesalahan kritis saat mengirim notifikasi "dalam perjalanan": ' . $e->getMessage(), [
+                'pengiriman_id' => isset($pengiriman) ? $pengiriman->id_pengiriman : 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
+        }
+    }
 } 
