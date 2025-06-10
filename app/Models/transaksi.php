@@ -48,6 +48,7 @@ class Transaksi extends Model
 		'diskon_poin',
 		'bukti_pembayaran',
 		'status_pembayaran',
+		'status_transaksi',
 		'total_harga',
 	];
 	public function pembeli()
