@@ -253,4 +253,36 @@ class TransaksiController
         return response()->json(['message' => 'Gagal memproses transaksi', 'error' => $e->getMessage()], 500);
     }
 }
+public function historyKomisiHunter($id_hunter)
+{
+    // Ambil semua penitipan yang hunter-nya adalah $id_hunter
+    $penitipans = Penitipan::where('id_hunter', $id_hunter)->with(['barangs.detailtransaksi.transaksi', 'penitip'])->get();
+
+    $history = [];
+
+    foreach ($penitipans as $penitipan) {
+        foreach ($penitipan->barangs as $barang) {
+            $detail = $barang->detailtransaksi;
+            if ($detail && $detail->transaksi) {
+                // Hitung komisi hunter (5% dari total komisi)
+                $totalPersenKomisi = $penitipan->perpanjangan ? 0.30 : 0.20;
+                $nilaiTotalKomisi = $barang->harga * $totalPersenKomisi;
+                $nilaiKomisiHunter = $nilaiTotalKomisi * 0.05;
+
+                $history[] = [
+                    'barang' => $barang->nama_barang,
+                    'harga_barang' => $barang->harga,
+                    'transaksi_id' => $detail->id_transaksi,
+                    'tanggal_transaksi' => $detail->transaksi->tgl_lunas,
+                    'penitip' => $penitipan->penitip->nama ?? null,
+                    'nilai_komisi_hunter' => $nilaiKomisiHunter,
+                    'total_komisi' => $nilaiTotalKomisi,
+                    'perpanjangan' => $penitipan->perpanjangan,
+                ];
+            }
+        }
+    }
+
+    return response()->json($history);
+}
 }
