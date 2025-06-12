@@ -108,6 +108,7 @@ class LaporanController
             ->whereYear('tgl_pesan', $currentYear)
             ->groupBy('month')
             ->orderBy('month')
+            ->where('status_transaksi', 'transaksi selesai')
             ->get();
 
         // Format the data

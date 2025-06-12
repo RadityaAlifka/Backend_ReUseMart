@@ -40,7 +40,8 @@ class Penitip extends Model
 	protected $casts = [
 		'saldo' => 'float',
 		'poin' => 'int',
-		'akumulasi_rating' => 'int'
+		'akumulasi_rating' => 'int',
+		'top_seller' => 'boolean'
 	];
 
 	protected $hidden = [
@@ -56,7 +57,9 @@ class Penitip extends Model
 		'nik',
 		'saldo',
 		'poin',
-		'akumulasi_rating'
+		'akumulasi_rating',
+		'top_seller'
+
 	];
 
 	public function pengambilans()

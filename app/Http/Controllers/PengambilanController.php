@@ -314,4 +314,30 @@ class PengambilanController
             'data' => $pengambilan->load(['pembeli', 'penitip', 'transaksi'])
         ]);
     }
+
+    public function pengambilanMerchandise(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'id_pembeli' => 'nullable|exists:pembelis,id_pembeli',
+                'batas_pengambilan' => 'required|date|after_or_equal:tanggal_pengambilan',
+            ]);
+
+            // Set status_pengambilan default
+            $validatedData['status_pengambilan'] = 'Merchandise diKlaim';
+
+            $pengambilan = Pengambilan::create($validatedData);
+
+            return response()->json([
+                'message' => 'Pengambilan merchandise berhasil dibuat',
+                'data' => $pengambilan->load(['pembeli', 'penitip', 'transaksi'])
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal menyimpan pengambilan merchandise',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

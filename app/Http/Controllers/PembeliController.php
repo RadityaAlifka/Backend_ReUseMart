@@ -106,7 +106,7 @@ class PembeliController
             $validatedData['password'] = $hashedPassword;
     
             // Update password di tabel users
-            $user = \App\Models\User::find($pegawai->user_id);
+            $user = \App\Models\User::find($pembeli->user_id);
             if ($user) {
                 $user->password = $hashedPassword;
                 $user->save();
@@ -165,9 +165,5 @@ class PembeliController
 
         return response()->json($pembeli);
     }
-
-    
-
-
     
 }

@@ -276,6 +276,7 @@ class MobileAuthController
                     $profileData['telepon'] = $penitip->telepon_penitip;
                     $profileData['poin'] = $penitip->poin;
                     $profileData['saldo'] = $penitip->saldo;
+                    $profileData['top_seller'] = $penitip->top_seller;
 
                     $consignedItems = [];
                     foreach ($penitip->penitipans as $penitipan) {
@@ -305,6 +306,9 @@ class MobileAuthController
                     $profileData['jabatan'] = $pegawai->jabatan; // Objek jabatan
                     $profileData['telepon'] = $pegawai->no_telp; // Pastikan ini nama kolom yang benar untuk nomor telepon pegawai
 
+                    if ($pegawai->jabatan && $pegawai->jabatan->nama_jabatan === 'hunter') {
+                        $profileData['komisi'] = $pegawai->komisi;
+                    }
                     // Jika pegawai adalah kurir, muat pengiriman yang ditugaskan
                     if ($pegawai->jabatan && $pegawai->jabatan->nama_jabatan === 'kurir') {
                         $deliveries = Pengiriman::where('id_pegawai', $pegawai->id_pegawai)
@@ -378,6 +382,7 @@ class MobileAuthController
                     $validatedPembeli = $request->validate([
                         'telepon_pembeli' => 'sometimes|string|max:20',
                         'tanggal_lahir_pembeli' => 'sometimes|date',
+                        'poin' => 'sometimes|integer|min:0'
                     ]);
                     $pembeli->update($validatedPembeli);
                 }

@@ -24,7 +24,8 @@ use App\Http\Controllers\{
     RatingController,
     NotificationController,
     MobileAuthController,
-    LaporanController
+    LaporanController,
+    MerchandiseController
 };
 
 
@@ -130,6 +131,9 @@ Route::middleware(['auth:sanctum', 'checkRole:pembeli'])->group(function () {
     Route::get('/rating/barang/{id_barang}', [RatingController::class, 'showByBarang']);
     Route::get('/kurir/pegawai', [PegawaiController::class, 'getKurir']);
 
+    Route::get('/merchandise', [MerchandiseController::class, 'index']);
+    Route::post('/merchandise/pengambilan', [PengambilanController::class, 'pengambilanMerchandise']);
+    Route::put('/merchandise/{id}', [MerchandiseController::class, 'update']);
 }); 
 
 
@@ -251,5 +255,11 @@ Route::prefix('mobile')->group(function () {
         Route::post('/user/profile', [MobileAuthController::class, 'updateProfile']);
     });
 });
+
+// Routes untuk hunter
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:hunter'])->group(function () {
+    Route::get('/hunter/komisi-history/{id_hunter}', [TransaksiController::class, 'historyKomisiHunter']);
+});
+
 
 
