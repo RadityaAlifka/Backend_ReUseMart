@@ -38,7 +38,9 @@ class Merchandise extends Model
 		'id_pembeli',
 		'id_pegawai',
 		'nama_merchandise',
-		'stock_merchandise'
+		'stock_merchandise',
+		'gambar',
+		'poin'
 	];
 
 	public function pegawai()

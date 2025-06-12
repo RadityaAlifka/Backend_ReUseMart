@@ -20,6 +20,7 @@ class MerchandiseController
             'id_pegawai' => 'required|exists:pegawais,id_pegawai',
             'nama_merchandise' => 'required|string|max:255',
             'stock_merchandise' => 'required|integer|min:0',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $merchandise = Merchandise::create($validatedData);
