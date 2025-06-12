@@ -421,6 +421,48 @@ public function checkStokBarang($id)
     ]);
 }
 
+public function getTransaksiByBarang($id_barang)
+    {
+        try {
+            $barang = Barang::with('detailtransaksis.transaksi')->find($id_barang);
+
+            if (!$barang) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Barang not found.'
+                ], 404);
+            }
+
+            $transactions = collect();
+            foreach ($barang->detailtransaksis as $detailtransaksi) {
+                if ($detailtransaksi->transaksi) {
+                    $transactions->push($detailtransaksi->transaksi);
+                }
+            }
+
+            if ($transactions->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No transactions found for this item.',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transactions found for the item.',
+                'data' => $transactions->toArray()
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in BarangController@getTransaksiByBarang: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve transaction data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 }

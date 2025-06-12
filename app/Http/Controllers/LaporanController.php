@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Transaksi;
 use App\Models\Penitipan;
 use App\Models\Barang;
+use App\Models\Penitip;
 use App\Models\Pegawai;
 use App\Models\Jabatan;
+use App\Models\RequestDonasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -283,5 +285,113 @@ class LaporanController
             'data' => $result
         ]);
     }
+
+    public function laporanRequestDonasi()
+    {
+        try {
+            // Get all request donasis with their associated organisasi and pegawai
+            $requestDonasis = RequestDonasi::with(['organisasi', 'pegawai'])->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Request Donasi berhasil diambil.',
+                'data' => $requestDonasis
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Handle any exceptions that occur during the process
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data Request Donasi.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getDonationReportData()
+    {
+        try {
+            $donatedBarangs = Barang::whereNotNull('id_donasi') // Ensure it has been donated
+                ->with([
+                    'penitipan.penitip', // Load penitipan and its related penitip
+                    'donasi.organisasi'  // Load donasi and its related organisasi
+                ])
+                ->get()
+                ->map(function ($barang) {
+                    return [
+                        'kode_produk' => $barang->id_barang, // Assuming id_barang is the product code
+                        'nama_produk' => $barang->nama_barang,
+                        'id_penitip' => $barang->penitipan->id_penitip ?? null,
+                        'nama_penitip' => $barang->penitipan->penitip->nama_penitip ?? null,
+                        'tanggal_donasi' => $barang->donasi->tanggal_donasi ?? null,
+                        'organisasi' => $barang->donasi->organisasi->nama_organisasi ?? null,
+                        'nama_penerima' => $barang->donasi->nama_penerima ?? null,
+                    ];
+                });
+
+            if ($donatedBarangs->isEmpty()) {
+                return response()->json([
+                    'message' => 'Tidak ada data donasi barang yang tersedia.'
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Data Laporan Donasi Barang',
+                'data' => $donatedBarangs
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in BarangController@getDonationReportData: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat mengambil data laporan donasi barang',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function generateConsignmentReport(Request $request, $id_penitip) // Nama method diubah agar lebih spesifik
+    {
+        // Parameter bulan dan tahun tidak relevan untuk laporan ini, tapi bisa tetap ada
+        $month = $request->input('month');
+        $year = $request->input('year');
+
+        $penitip = Penitip::with([
+            'penitipans.barangs' // Hanya load penitipan dan barangs
+        ])
+        ->find($id_penitip);
+
+        if (!$penitip) {
+            return response()->json(['message' => 'Penitip not found.'], 404);
+        }
+
+        $reportData = [
+            'ID Penitip' => $penitip->id_penitip,
+            'Nama Penitip' => $penitip->nama_penitip,
+            // Bulan dan Tahun bisa diisi "N/A" atau disembunyikan jika tidak relevan tanpa transaksi
+            'Bulan' => $month ? Carbon::create()->month($month)->locale('id')->monthName : 'N/A (Tanpa Transaksi)',
+            'Tahun' => $year ? $year : 'N/A (Tanpa Transaksi)',
+            'Barang Dititipkan' => [] // Mengganti 'Transaksi Produk' menjadi 'Barang Dititipkan'
+        ];
+
+        // Loop untuk mengumpulkan data barang yang dititipkan
+        foreach ($penitip->penitipans as $penitipan) {
+            foreach ($penitipan->barangs as $barang) {
+                $reportData['Barang Dititipkan'][] = [
+                    'Kode Produk' => $barang->id_barang,
+                    'Nama Produk' => $barang->nama_barang,
+                    'Tanggal Masuk' => $penitipan->tanggal_penitipan ? Carbon::parse($penitipan->tanggal_penitipan)->format('Y-m-d') : null,
+                    // Kolom terkait transaksi akan null atau diisi nilai default karena tidak ada join ke transaksi
+                    'Tanggal Laku' => 'N/A (Belum Laku/Data Transaksi Tidak Dimuat)',
+                    'Harga Jual Bersih' => $barang->harga,
+                    'Status Barang' => $barang->status_barang, // Menambahkan status barang untuk debugging
+                    'Bonus Terjual Cepat' => $barang->tanggal_keluar ? 'Ya' : 'Tidak', // Logika tetap sama
+                    'Pendapatan' => $penitip->saldo // Ini tetap saldo penitip saat ini
+                ];
+            }
+        }
+
+        return response()->json($reportData);
+    }
+
 }
 
