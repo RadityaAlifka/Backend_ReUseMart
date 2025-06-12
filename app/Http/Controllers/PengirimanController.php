@@ -113,53 +113,63 @@ class PengirimanController
     }
 
     public function editPengiriman(Request $request, $id)
-    {
-        $pengiriman = Pengiriman::with([
-            'pegawai',
+{
+    $pengiriman = Pengiriman::with([
+        'pegawai',
+        'transaksi.pembeli',
+        'transaksi.detailtransaksi.barang.penitipan.penitip'
+    ])->find($id);
+
+    if (!$pengiriman) {
+        return response()->json(['message' => 'Pengiriman not found'], 404);
+    }
+
+    $oldStatus = $pengiriman->status_pengiriman; // Capture old status for comparison
+
+    $validatedData = $request->validate([
+        'id_pegawai' => 'sometimes|required|exists:pegawais,id_pegawai',
+        'tanggal_pengiriman' => 'sometimes|required|date',
+        'status_pengiriman' => 'sometimes|required|string|max:50',
+    ]);
+
+    $pengiriman->update($validatedData);
+
+    // Reload the 'pegawai' relation if 'id_pegawai' was updated
+    if (isset($validatedData['id_pegawai'])) {
+        $pengiriman->load('pegawai');
+    }
+
+    // Kirim notifikasi jika status_pengiriman berubah menjadi 'dijadwalkan'
+    if (isset($validatedData['status_pengiriman']) &&
+        strtolower($validatedData['status_pengiriman']) === 'dijadwalkan' &&
+        strtolower($oldStatus) !== 'dijadwalkan') {
+        $this->triggerOnTheWayNotification($pengiriman->fresh()); // Use fresh() to get the latest state including relations
+    }
+    // Kirim notifikasi jika status_pengiriman berubah menjadi 'sudah sampai'
+    else if (isset($validatedData['status_pengiriman']) &&
+             strtolower($validatedData['status_pengiriman']) === 'sudah sampai' &&
+             strtolower($oldStatus) !== 'sudah sampai') {
+        // Load necessary relations for 'delivered' notification if not already loaded or stale
+        $pengiriman->load([
+            'pegawai', // Make sure kurir data is available
             'transaksi.pembeli',
             'transaksi.detailtransaksi.barang.penitipan.penitip'
-        ])->find($id);
-
-        if (!$pengiriman) {
-            return response()->json(['message' => 'Pengiriman not found'], 404);
-        }
-
-        $oldStatus = $pengiriman->status_pengiriman; // Capture old status for comparison
-
-        $validatedData = $request->validate([
-            'id_pegawai' => 'sometimes|required|exists:pegawais,id_pegawai',
-            'tanggal_pengiriman' => 'sometimes|required|date',
-            'status_pengiriman' => 'sometimes|required|string|max:50',
         ]);
-
-        $pengiriman->update($validatedData);
-
-        // Reload the 'pegawai' relation if 'id_pegawai' was updated
-        if (isset($validatedData['id_pegawai'])) {
-            $pengiriman->load('pegawai');
-        }
-
-        // Kirim notifikasi jika status_pengiriman berubah menjadi 'dijadwalkan'
-        // atau jika ada perubahan tanggal pengiriman (sesuai sendDeliveryScheduleNotification)
-        if (isset($validatedData['status_pengiriman']) &&
-            strtolower($validatedData['status_pengiriman']) === 'dijadwalkan' &&
-            strtolower($oldStatus) !== 'dijadwalkan') {
-            $this->triggerOnTheWayNotification($pengiriman->fresh());
-        }
-        // Also keep the existing delivery schedule notification if it's based on date changes
-        else if (isset($validatedData['tanggal_pengiriman'])) {
-             $notificationSent = $this->notificationController->sendDeliveryScheduleNotification($pengiriman);
-             if (!$notificationSent) {
-                 \Log::warning('Failed to send delivery schedule notifications for pengiriman ID: ' . $id);
-             }
-        }
-
-
-        return response()->json([
-            'message' => 'Pengiriman updated successfully',
-            'data' => $pengiriman->load(['pegawai', 'transaksi'])
-        ]);
+        $this->notificationController->sendDeliveredNotification($pengiriman);
     }
+    // Also keep the existing delivery schedule notification if it's based on date changes
+    else if (isset($validatedData['tanggal_pengiriman'])) {
+         $notificationSent = $this->notificationController->sendDeliveryScheduleNotification($pengiriman);
+         if (!$notificationSent) {
+             \Log::warning('Failed to send delivery schedule notifications for pengiriman ID: ' . $id);
+         }
+    }
+
+    return response()->json([
+        'message' => 'Pengiriman updated successfully',
+        'data' => $pengiriman->load(['pegawai', 'transaksi'])
+    ]);
+}
 
     // This method already exists in your provided code and is correct.
     // It should be used to handle status updates specifically for 'dijadwalkan'.

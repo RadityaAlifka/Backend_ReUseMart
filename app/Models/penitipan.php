@@ -48,7 +48,7 @@ class Penitipan extends Model
 
 	public function penitip()
 	{
-		return $this->belongsTo(Penitip::class, 'id_penitip');
+		return $this->belongsTo(Penitip::class, 'id_penitip', 'id_penitip');
 	}
 
 	public function barangs()

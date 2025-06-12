@@ -698,4 +698,84 @@ class NotificationController
             return false;
         }
     }
+    public function sendDeliveredNotification($pengiriman)
+{
+    try {
+        // Ambil data yang diperlukan dari relasi
+        $transaksi = $pengiriman->transaksi;
+        $pembeli = $transaksi->pembeli;
+        $kurir = $pengiriman->pegawai; // Ambil data kurir
+        $nama_kurir = $kurir ? $kurir->nama_pegawai : 'Kurir Tidak Dikenal'; // Nama kurir, default jika tidak ada
+
+        // Ambil nama barang pertama dari transaksi (asumsi ada setidaknya satu barang)
+        $nama_barang = 'Barang pesanan Anda';
+        if ($transaksi->detailtransaksi->isNotEmpty() && $transaksi->detailtransaksi->first()->barang) {
+            $nama_barang = $transaksi->detailtransaksi->first()->barang->nama_barang;
+        }
+
+        \Log::info('Mencoba mengirim notifikasi "barang sudah sampai"', [
+            'pengiriman_id' => $pengiriman->id_pengiriman,
+            'status_pengiriman' => $pengiriman->status_pengiriman,
+            'nama_barang' => $nama_barang,
+            'nama_kurir' => $nama_kurir,
+        ]);
+
+        // --- Notifikasi untuk Pembeli ---
+        if ($pembeli) {
+            try {
+                $topic_pembeli = 'pembeli_' . $pembeli->id_pembeli;
+                $message_pembeli = CloudMessage::withTarget('topic', $topic_pembeli)
+                    ->withNotification(Notification::create(
+                        'Pesanan Telah Tiba!',
+                        "Barang pesanan Anda '{$nama_barang}' telah berhasil diantarkan oleh {$nama_kurir}. Terima kasih telah berbelanja!"
+                    ))
+                    ->withData([
+                        'type' => 'delivered_notification',
+                        'id_pengiriman' => (string)$pengiriman->id_pengiriman,
+                        'id_transaksi' => (string)$transaksi->id_transaksi,
+                    ]);
+                $this->messaging->send($message_pembeli);
+                \Log::info('Notifikasi "barang sudah sampai" berhasil dikirim ke pembeli', ['pembeli_id' => $pembeli->id_pembeli]);
+            } catch (\Exception $e) {
+                \Log::error('Gagal mengirim notifikasi "barang sudah sampai" ke pembeli: ' . $e->getMessage(), ['pembeli_id' => $pembeli->id_pembeli]);
+            }
+        }
+
+        // --- Notifikasi untuk Penitip ---
+        // Asumsi penitip terhubung melalui barang di detail transaksi
+        $detailTransaksi = $transaksi->detailtransaksi->first();
+        if ($detailTransaksi && $detailTransaksi->barang && $detailTransaksi->barang->penitipan && $detailTransaksi->barang->penitipan->penitip) {
+            $penitip = $detailTransaksi->barang->penitipan->penitip;
+            try {
+                $topic_penitip = 'penitip_' . $penitip->id_penitip;
+                $message_penitip = CloudMessage::withTarget('topic', $topic_penitip)
+                    ->withNotification(Notification::create(
+                        'Barang Anda Telah Sampai',
+                        "Barang titipan Anda '{$nama_barang}' telah berhasil diantarkan kepada pembeli oleh {$nama_kurir}."
+                    ))
+                    ->withData([
+                        'type' => 'delivered_notification',
+                        'id_pengiriman' => (string)$pengiriman->id_pengiriman,
+                        'id_barang' => (string)$detailTransaksi->barang->id_barang,
+                        'id_transaksi' => (string)$transaksi->id_transaksi,
+                    ]);
+                $this->messaging->send($message_penitip);
+                \Log::info('Notifikasi "barang sudah sampai" berhasil dikirim ke penitip', ['penitip_id' => $penitip->id_penitip]);
+            } catch (\Exception $e) {
+                \Log::error('Gagal mengirim notifikasi "barang sudah sampai" ke penitip: ' . $e->getMessage(), ['penitip_id' => $penitip->id_penitip]);
+            }
+        } else {
+            \Log::warning('Tidak ada penitip yang ditemukan untuk transaksi ini, melewati notifikasi "barang sudah sampai".', ['transaksi_id' => $transaksi->id_transaksi]);
+        }
+
+        \Log::info('Notifikasi "barang sudah sampai" selesai dikirim ke semua pihak yang relevan.');
+        return true;
+    } catch (\Exception $e) {
+        \Log::error('Terjadi kesalahan kritis saat mengirim notifikasi "barang sudah sampai": ' . $e->getMessage(), [
+            'pengiriman_id' => isset($pengiriman) ? $pengiriman->id_pengiriman : 'unknown',
+            'trace' => $e->getTraceAsString()
+        ]);
+        return false;
+    }
+}
 } 
