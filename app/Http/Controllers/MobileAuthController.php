@@ -276,6 +276,7 @@ class MobileAuthController
                     $profileData['telepon'] = $penitip->telepon_penitip;
                     $profileData['poin'] = $penitip->poin;
                     $profileData['saldo'] = $penitip->saldo;
+                    $profileData['top_seller'] = $penitip->top_seller;
 
                     $consignedItems = [];
                     foreach ($penitip->penitipans as $penitipan) {

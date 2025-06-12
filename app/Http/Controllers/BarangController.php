@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\Rating;
 use App\Models\KategoriBarang;
 use App\Models\Pegawai;
 use App\Models\Penitipan;
@@ -26,59 +27,84 @@ class BarangController
 }
 
 
-    public function index()
-    {
-        try {
-            // Ambil semua barang dengan status 'tersedia'
-            $barang = Barang::where('status_barang', 'Tersedia')
-                ->with('penitipan') // Load relasi penitipan untuk mendapatkan id_penitip
-                ->get()
-                ->map(function($item) {
-                    // Ambil id_penitip dari relasi penitipan
-                    $id_penitip = $item->penitipan?->id_penitip;
-                    
-                    if ($id_penitip) {
-                        // Gunakan getAkumulasiRating untuk mendapatkan rating penitip
-                        $ratingResponse = $this->penitipController->getAkumulasiRating($id_penitip);
-                        $ratingData = json_decode($ratingResponse->getContent());
-                        
-                        // Tambahkan rating ke item barang
-                        $item->rating_penitip = $ratingData->average_rating;
-                        
-                        // Hitung jumlah rating untuk penitip ini
-                        $penitipanIds = \App\Models\Penitipan::where('id_penitip', $id_penitip)->pluck('id_penitipan');
-                        $barangIds = \App\Models\Barang::whereIn('id_penitipan', $penitipanIds)->pluck('id_barang');
-                        $item->jumlah_rating = \App\Models\Rating::whereIn('id_barang', $barangIds)->count();
-                    } else {
-                        $item->rating_penitip = null;
-                        $item->jumlah_rating = 0;
-                    }
-                    
-                    return $item;
-                });
-            
-            // Cek apakah data ditemukan
-            if ($barang->isEmpty()) {
-                return response()->json([
-                    'message' => 'Tidak ada barang yang tersedia saat ini.'
-                ], 404);
+public function index()
+{
+    try {
+        // Langkah 1: Ambil data barang dan relasinya secara efisien (Eager Loading)
+        $barangs = Barang::where('status_barang', 'Tersedia')
+            ->with(['penitipan.penitip']) // Memuat penitipan DAN data penitip di dalamnya
+            ->get();
+
+        // Cek jika tidak ada barang sama sekali
+        if ($barangs->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada barang yang tersedia saat ini.'
+            ], 404);
+        }
+
+        // Langkah 2: Gunakan ->map() untuk mengubah setiap item barang
+        $data = $barangs->map(function ($barang) {
+            // Akses data penitip yang sudah di-load
+            $penitip = $barang->penitipan?->penitip;
+
+            $rating_penitip = 0;
+            $jumlah_rating = 0;
+
+            // Hitung rating hanya jika penitip ada.
+            // CATATAN: Baris kode di bawah ini akan menjalankan 1 query tambahan
+            // untuk SETIAP barang. Ini adalah contoh N+1 query problem.
+            // Untuk performa terbaik, gunakan API Resource atau optimasi query lebih lanjut.
+            if ($penitip) {
+                $ratingInfo = Rating::selectRaw('AVG(ratings.rating) as average_rating, COUNT(ratings.id_rating) as total_ratings')
+                    ->join('barangs', 'ratings.id_barang', '=', 'barangs.id_barang')
+                    ->join('penitipans', 'barangs.id_penitipan', '=', 'penitipans.id_penitipan')
+                    ->where('penitipans.id_penitip', $penitip->id_penitip)
+                    ->first();
+
+                $rating_penitip = $ratingInfo->average_rating ?? 0;
+                $jumlah_rating = $ratingInfo->total_ratings ?? 0;
             }
 
-            // Jika ada data, kembalikan dengan response JSON
-            return response()->json([
-                'message' => 'Daftar barang tersedia',
-                'data' => $barang
-            ], 200);
+            // Bentuk struktur JSON yang diinginkan
+            return [
+                // Data Barang Utama
+                'id_barang' => $barang->id_barang,
+                'nama_barang' => $barang->nama_barang,
+                'deskripsi_barang' => $barang->deskripsi_barang,
+                'harga' => $barang->harga,
+                'status_barang' => $barang->status_barang,
+                'berat' => $barang->berat,
+                'garansi' => $barang->garansi,
+                'gambar1_url' => $barang->gambar1_url, // Asumsi Anda punya accessor ini
 
-        } catch (\Exception $e) {
-            \Log::error('Error in BarangController@index: ' . $e->getMessage());
-            
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat mengambil data barang',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+                // Data Tambahan
+                'rating_penitip' => (float) $rating_penitip,
+                'jumlah_rating' => (int) $jumlah_rating,
+
+                // Objek Penjual (Penitip)
+                'penjual' => [
+                    'id_penitip' => $penitip?->id_penitip,
+                    'nama_penitip' => $penitip?->nama_penitip,
+                    'is_top_seller' => (bool) $penitip?->top_seller,
+                ]
+            ];
+        });
+
+        // Langkah 3: Kembalikan data yang sudah di-transform
+        return response()->json([
+            'message' => 'Daftar barang tersedia',
+            'data' => $data
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error('Error in BarangController@index: ' . $e->getMessage());
+        
+        return response()->json([
+            'message' => 'Terjadi kesalahan saat mengambil data barang',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     public function store(Request $request)
     {
