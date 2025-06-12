@@ -320,7 +320,6 @@ class PengambilanController
         try {
             $validatedData = $request->validate([
                 'id_pembeli' => 'nullable|exists:pembelis,id_pembeli',
-                'tanggal_pengambilan' => 'required|date',
                 'batas_pengambilan' => 'required|date|after_or_equal:tanggal_pengambilan',
             ]);
 

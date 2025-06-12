@@ -247,4 +247,10 @@ Route::prefix('mobile')->group(function () {
     });
 });
 
+// Routes untuk hunter
+Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:hunter'])->group(function () {
+    Route::get('/hunter/komisi-history/{id_hunter}', [TransaksiController::class, 'historyKomisiHunter']);
+});
+
+
 
