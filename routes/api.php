@@ -89,6 +89,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
     Route::delete('/penitip/{id}', [PenitipController::class, 'de   stroy']);
     Route::get('/cs/pegawai', [PegawaiController::class,'getPegawaiCSFromToken']);
     Route::put('/cs/barang/{id}', [BarangController::class,'update']);
+    Route::get('/pengambilan/merchandise', [PengambilanController::class, 'getPengambilanMerchandise']);
+    Route::put('/pengambilan/verifikasi/{id}', [PengambilanController::class, 'verifikasiPengambilan']);
 });// Route
 // 
 // 
