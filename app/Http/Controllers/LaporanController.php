@@ -131,73 +131,76 @@ class LaporanController
     }
 
      public function getYearlyReportByCategory()
-    {
-        try {
-            // --- 1. NILAI STATUS DIPERBAIKI ---
-            $statusBerhasil = 'transaksi selesai';
-            $statusGagal = 'transaksi dibatalkan'; // Asumsi, sesuaikan jika perlu
+{
+    try {
+        $statusBerhasil = 'transaksi selesai';
+        $statusGagal = 'transaksi dibatalkan';
 
-            // --- 2. KUERI UNTUK RINCIAN PER TAHUN & KATEGORI (TETAP SAMA) ---
-            $yearlyReportData = DB::table('detailtransaksis')
-                ->join('barangs', 'detailtransaksis.id_barang', '=', 'barangs.id_barang')
-                ->join('kategori_barangs', 'barangs.id_kategori', '=', 'kategori_barangs.id_kategori')
-                ->join('transaksis', 'detailtransaksis.id_transaksi', '=', 'transaksis.id_transaksi')
+        // Ambil semua tahun yang ada di transaksi
+        $years = DB::table('transaksis')
+            ->select(DB::raw('YEAR(tgl_pesan) as year'))
+            ->distinct()
+            ->pluck('year');
+
+        // Ambil semua kategori
+        $categories = DB::table('kategori_barangs')->pluck('nama_kategori', 'id_kategori');
+
+        $yearlyReportData = [];
+
+        foreach ($years as $year) {
+            $dataPerCategory = DB::table('kategori_barangs')
+                ->leftJoin('barangs', 'kategori_barangs.id_kategori', '=', 'barangs.id_kategori')
+                ->leftJoin('detailtransaksis', 'barangs.id_barang', '=', 'detailtransaksis.id_barang')
+                ->leftJoin('transaksis', 'detailtransaksis.id_transaksi', '=', 'transaksis.id_transaksi')
                 ->select(
-                    DB::raw('YEAR(transaksis.tgl_pesan) as year'),
                     'kategori_barangs.nama_kategori as category_name',
-                    DB::raw("SUM(CASE WHEN transaksis.status_transaksi = '{$statusBerhasil}' THEN 1 ELSE 0 END) as items_sold"),
-                    DB::raw("SUM(CASE WHEN transaksis.status_transaksi = '{$statusGagal}' THEN 1 ELSE 0 END) as items_failed")
+                    DB::raw("SUM(CASE WHEN YEAR(transaksis.tgl_pesan) = {$year} AND transaksis.status_transaksi = '{$statusBerhasil}' THEN 1 ELSE 0 END) as items_sold"),
+                    DB::raw("SUM(CASE WHEN YEAR(transaksis.tgl_pesan) = {$year} AND transaksis.status_transaksi = '{$statusGagal}' THEN 1 ELSE 0 END) as items_failed")
                 )
-                ->whereIn('transaksis.status_transaksi', [$statusBerhasil, $statusGagal])
-                ->groupBy('year', 'category_name')
-                ->orderBy('year', 'desc')
+                ->groupBy('kategori_barangs.id_kategori', 'kategori_barangs.nama_kategori')
                 ->orderBy('items_sold', 'desc')
                 ->get();
-            
-            // Format data rincian per tahun
-            $formattedYearlyData = [];
-            foreach ($yearlyReportData as $data) {
-                $year = $data->year;
-                if (!isset($formattedYearlyData[$year])) {
-                    $formattedYearlyData[$year] = ['year' => $year, 'categories' => []];
-                }
-                $formattedYearlyData[$year]['categories'][] = [
-                    'name' => $data->category_name,
-                    'items_sold' => (int) $data->items_sold,
-                    'items_failed' => (int) $data->items_failed
-                ];
-            }
 
-            // --- 3. KUERI BARU UNTUK MENGHITUNG GRAND TOTAL ---
-            $grandTotalData = DB::table('transaksis')
-                ->join('detailtransaksis', 'transaksis.id_transaksi', '=', 'detailtransaksis.id_transaksi')
-                ->select(
-                    DB::raw("SUM(CASE WHEN transaksis.status_transaksi = '{$statusBerhasil}' THEN 1 ELSE 0 END) as total_items_sold"),
-                    DB::raw("SUM(CASE WHEN transaksis.status_transaksi = '{$statusGagal}' THEN 1 ELSE 0 END) as total_items_failed")
-                )
-                ->whereIn('transaksis.status_transaksi', [$statusBerhasil, $statusGagal])
-                ->first(); // Menggunakan first() karena hanya mengharapkan 1 baris hasil
-
-            // --- 4. MENYUSUN JSON RESPONSE DENGAN STRUKTUR BARU ---
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'yearly_breakdown' => array_values($formattedYearlyData),
-                    'grand_total' => [
-                        'total_items_sold' => (int) ($grandTotalData->total_items_sold ?? 0),
-                        'total_items_failed' => (int) ($grandTotalData->total_items_failed ?? 0),
-                    ]
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data laporan.',
-                'error' => $e->getMessage()
-            ], 500);
+            $yearlyReportData[] = [
+                'year' => $year,
+                'categories' => $dataPerCategory->map(function($item) {
+                    return [
+                        'name' => $item->category_name,
+                        'items_sold' => (int) $item->items_sold,
+                        'items_failed' => (int) $item->items_failed
+                    ];
+                })->toArray()
+            ];
         }
+
+        // Grand total tetap
+        $grandTotalData = DB::table('transaksis')
+            ->join('detailtransaksis', 'transaksis.id_transaksi', '=', 'detailtransaksis.id_transaksi')
+            ->select(
+                DB::raw("SUM(CASE WHEN transaksis.status_transaksi = '{$statusBerhasil}' THEN 1 ELSE 0 END) as total_items_sold"),
+                DB::raw("SUM(CASE WHEN transaksis.status_transaksi = '{$statusGagal}' THEN 1 ELSE 0 END) as total_items_failed")
+            )
+            ->whereIn('transaksis.status_transaksi', [$statusBerhasil, $statusGagal])
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'yearly_breakdown' => $yearlyReportData,
+                'grand_total' => [
+                    'total_items_sold' => (int) ($grandTotalData->total_items_sold ?? 0),
+                    'total_items_failed' => (int) ($grandTotalData->total_items_failed ?? 0),
+                ]
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal mengambil data laporan.',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
      public function laporanPenitipanHabis()
     {
