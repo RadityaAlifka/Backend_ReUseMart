@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 // Kirim link reset password ke email
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+Route::post('/pegawai/reset-password', [PegawaiController::class, 'resetPassword'])->middleware('auth:sanctum');
 
 // Reset password menggunakan token dari email
 Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
