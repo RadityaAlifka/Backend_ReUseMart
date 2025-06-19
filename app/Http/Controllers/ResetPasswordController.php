@@ -34,4 +34,6 @@ class ResetPasswordController
             'email' => [__($status)],
         ]);
     }
+
+    
 }

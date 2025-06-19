@@ -253,6 +253,93 @@ class TransaksiController
         return response()->json(['message' => 'Gagal memproses transaksi', 'error' => $e->getMessage()], 500);
     }
 }
+
+public function getConsignorSoldItemsReport($id_penitip)
+    {
+        try {
+            $penitip = Penitip::find($id_penitip);
+
+            if (!$penitip) {
+                return response()->json(['success' => false, 'message' => 'Penitip not found'], 404);
+            }
+
+            // --- PERBAIKAN DI SINI: INISIALISASI $formattedItems ---
+            $formattedItems = []; // <-- Tambahkan baris ini
+            // --- END PERBAIKAN ---
+
+            $totalHargaJualBersih = 0;
+            $totalBonusTerjualCepat = 0;
+            $totalPendapatanItem = 0;
+
+            $barangs = Barang::whereHas('penitipan', function($query) use ($id_penitip) {
+                                $query->where('id_penitip', $id_penitip);
+                            })
+                            ->whereHas('detailtransaksis.transaksi', function($query) {
+                                $query->whereNotNull('tgl_lunas');
+                            })
+                            ->with(['penitipan', 'detailtransaksis.transaksi'])
+                            ->get();
+
+            foreach ($barangs as $barang) {
+                $penitipan = $barang->penitipan;
+                $detailTransaksi = $barang->detailtransaksis->first();
+                $transaksi = $detailTransaksi ? $detailTransaksi->transaksi : null;
+
+                if (!$penitipan || !$transaksi) {
+                    continue;
+                }
+
+                $hargaJualBersih = $barang->harga; 
+
+                $tanggalPenitipan = Carbon::parse($penitipan->tanggal_penitipan);
+                $tanggalLunas = Carbon::parse($transaksi->tgl_lunas);
+                $selisihHariJual = $tanggalLunas->diffInDays($tanggalPenitipan);
+
+                $totalPersenKomisi = $penitipan->perpanjangan ? 0.30 : 0.20;
+                $nilaiTotalKomisi = $hargaJualBersih * $totalPersenKomisi;
+                
+                $bonusTerjualCepat = 0;
+                if ($selisihHariJual < 7) {
+                    $bonusTerjualCepat = $nilaiTotalKomisi * 0.10;
+                }
+
+                $saldoDasar = $hargaJualBersih - $nilaiTotalKomisi;
+                $pendapatanItem = $saldoDasar + $bonusTerjualCepat;
+
+                $formattedItems[] = [
+                    'Kode Produk' => $barang->id_barang, 
+                    'Nama Produk' => $barang->nama_barang,
+                    'Tanggal Masuk' => $tanggalPenitipan->translatedFormat('d F Y'),
+                    'Tanggal Laku' => $tanggalLunas->translatedFormat('d F Y'),
+                    'Harga Jual Bersih' => (float) $hargaJualBersih,
+                    'Bonus Terjual Cepat' => (float) $bonusTerjualCepat,
+                    'Pendapatan Item' => (float) $pendapatanItem,
+                ];
+
+                $totalHargaJualBersih += $hargaJualBersih;
+                $totalBonusTerjualCepat += $bonusTerjualCepat;
+                $totalPendapatanItem += $pendapatanItem;
+            }
+
+            $summary = [
+                'total_harga_jual_bersih' => (float) $totalHargaJualBersih,
+                'total_bonus_terjual_cepat' => (float) $totalBonusTerjualCepat,
+                'total_pendapatan_item' => (float) $totalPendapatanItem,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'Barang Dititipkan' => $formattedItems,
+                    'Ringkasan' => $summary,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to retrieve consignor sales report: ' . $e->getMessage()], 500);
+        }
+    }
+
 public function historyKomisiHunter($id_hunter)
 {
     // Ambil semua penitipan yang hunter-nya adalah $id_hunter
@@ -285,4 +372,5 @@ public function historyKomisiHunter($id_hunter)
 
     return response()->json($history);
 }
+
 }

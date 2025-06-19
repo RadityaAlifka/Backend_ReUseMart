@@ -68,6 +68,40 @@ class PengambilanController
 
         return response()->json($pengambilan);
     }
+    public function getPengambilanMerchandise() {
+        try {
+            // Join tabel pengambilans dengan tabel pembelis
+            $pengambilanDiklaim = Pengambilan::join('pembelis', 'pengambilans.id_pembeli', '=', 'pembelis.id_pembeli')
+                ->where('pengambilans.status_pengambilan', 'Merchandise diKlaim')
+                ->select(
+                    'pengambilans.id_pengambilan',
+                    'pembelis.nama_pembeli', 
+                    'pengambilans.tanggal_pengambilan',
+                    'pengambilans.status_pengambilan'
+                )
+                ->get();
+
+            if ($pengambilanDiklaim->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data pengambilan dengan status "Merchandise diKlaim" yang ditemukan.'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $pengambilanDiklaim
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan pada server.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     // Update a specific pengambilan
     public function update(Request $request, $id)
@@ -336,6 +370,34 @@ class PengambilanController
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Gagal menyimpan pengambilan merchandise',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function verifikasiPengambilan($id)
+    {
+        try {
+            $pengambilan = \App\Models\Pengambilan::findOrFail($id);
+
+            // Update tanggal pengambilan dengan waktu saat ini
+            $pengambilan->tanggal_pengambilan = now();
+            $pengambilan->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengambilan berhasil diverifikasi.',
+                'data' => $pengambilan // Mengembalikan data yang sudah diupdate
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data pengambilan tidak ditemukan.'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan pada server.',
                 'error' => $e->getMessage()
             ], 500);
         }

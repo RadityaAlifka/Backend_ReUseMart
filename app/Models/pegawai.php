@@ -41,7 +41,8 @@ class Pegawai extends Model
 
 	protected $casts = [
 		'id_jabatan' => 'int',
-		'komisi' => 'float'
+		'komisi' => 'float',
+		'tanggal_lahir' => 'date'
 	];
 
 	protected $hidden = [
@@ -55,7 +56,8 @@ class Pegawai extends Model
 		'email',
 		'no_telp',
 		'password',
-		'komisi'
+		'komisi',
+		'tanggal_lahir'
 	];
 
 	public function jabatan()

@@ -112,4 +112,9 @@ class Barang extends Model
     {
         return $this->hasMany(Rating::class, 'id_barang');
     }
+
+    public function detailtransaksis() // This is the method Laravel was looking for!
+    {
+        return $this->hasMany(Detailtransaksi::class, 'id_barang', 'id_barang');
+    }
 }

@@ -201,4 +201,10 @@ class PenitipController
         ]);
     }
 
+public function showPenitipForCS()
+    {
+        $penitips = Penitip::all();
+        return response()->json($penitips);
+    }
+
 }

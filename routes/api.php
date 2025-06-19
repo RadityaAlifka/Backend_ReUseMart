@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 // Kirim link reset password ke email
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+Route::post('/pegawai/reset-password', [PegawaiController::class, 'resetPassword'])->middleware('auth:sanctum');
 
 // Reset password menggunakan token dari email
 Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
@@ -89,6 +90,8 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:cs'])->gro
     Route::delete('/penitip/{id}', [PenitipController::class, 'de   stroy']);
     Route::get('/cs/pegawai', [PegawaiController::class,'getPegawaiCSFromToken']);
     Route::put('/cs/barang/{id}', [BarangController::class,'update']);
+    Route::get('/pengambilan/merchandise', [PengambilanController::class, 'getPengambilanMerchandise']);
+    Route::put('/pengambilan/verifikasi/{id}', [PengambilanController::class, 'verifikasiPengambilan']);
 });// Route
 // 
 // 
@@ -165,6 +168,13 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:owner'])->
     Route::get('/laporan/penitipan-habis', [LaporanController::class, 'laporanPenitipanHabis']);
     Route::get('/laporan/stok', [LaporanController::class, 'laporanStokGudang']);
     Route::get('/laporan/komisi', [LaporanController::class, 'laporanKomisiBulananPerProduk']);
+    Route::get('/laporan/request-donasi', [LaporanController::class, 'laporanRequestDonasi']);
+    Route::get('/laporan/history-donasi', [LaporanController::class, 'getDonationReportData']);
+    Route::get('/reports/penitip/{id_penitip}', [LaporanController::class, 'generateTransactionReport']);
+    Route::get('/report/penitip/{id_penitip}', [LaporanController::class, 'generateConsignmentReport']);
+    Route::get('/owner/penitip/{id}', [PenitipController::class, 'show']);
+    Route::get('/penitip/cs/', [PenitipController::class, 'showPenitipForCS']);
+    Route::get('/transaksi/laporan-penitip/{id_penitip}', [TransaksiController::class, 'getConsignorSoldItemsReport']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -200,11 +210,13 @@ Route::middleware(['auth:sanctum', 'checkRole:pegawai', 'checkJabatan:pegawai gu
     Route::put('/pengambilan/konfirmasi/{id}', [PengambilanController::class, 'konfirmasiPengambilan']);
     Route::get('/get-transaksi/{id}', [TransaksiController::class, 'getTransaksiById']);
     Route::get('/get-kurir', [PegawaiController::class, 'getKurir']);
-    Route::put('/edit-pengiriman/{id}', [PengirimanController::class, 'editPengiriman']);
+    
     Route::put('/edit-pengambilan/{id}', [PengambilanController::class, 'editPengambilan']);
     Route::post('/proses-komisi/{id}', [TransaksiController::class, 'prosesKomisiTransaksi']);
 });
 
+Route::post('/proses-komisi/{id}', [TransaksiController::class, 'prosesKomisiTransaksi']);
+Route::put('/edit-pengiriman/{id}', [PengirimanController::class, 'editPengiriman']);
 // Endpoint laporan komisi bulanan per produk
 
 Route::get('/barang/check-stok/{id}', [BarangController::class, 'checkStokBarang']);
