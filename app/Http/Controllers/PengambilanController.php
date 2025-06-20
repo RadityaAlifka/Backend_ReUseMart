@@ -196,9 +196,10 @@ class PengambilanController
                 'tanggal_pengambilan' => 'required|date',
                 'status_pengambilan' => 'required|string|max:50',
                 'id_barang' => 'required|exists:barangs,id_barang',
+                'tanggal_keluar_barang' => 'nullable|date', // Tambahkan validasi untuk properti baru
             ]);
 
-            // Ambil data pengambilan dengan relasi yang dibutuhkan
+            // Ambil data pengambilan
             $pengambilan = Pengambilan::with(['pembeli', 'penitip', 'transaksi'])->find($id);
 
             if (!$pengambilan) {
@@ -206,37 +207,33 @@ class PengambilanController
                 return response()->json(['message' => 'Pengambilan not found'], 404);
             }
 
-            \Log::info('Found pengambilan data', [
-                'pengambilan_id' => $pengambilan->id_pengambilan,
-                'pembeli_id' => $pengambilan->id_pembeli,
-                'penitip_id' => $pengambilan->id_penitip
-            ]);
-
             // Update data pengambilan
             $pengambilan->tanggal_pengambilan = $validatedData['tanggal_pengambilan'];
             $pengambilan->status_pengambilan = $validatedData['status_pengambilan'];
             $pengambilan->save();
 
-            // Update status barang
+            // Update status barang dan TANGGAL KELUAR BARANG
             $barang = Barang::find($validatedData['id_barang']);
             if ($barang) {
                 $oldStatus = $barang->status_barang;
                 $barang->status_barang = 'diambil kembali';
+                // **PENTING: Perbarui kolom tanggal_keluar di tabel barangs**
+                $barang->tanggal_keluar = $validatedData['tanggal_keluar_barang'] ?? null; // Gunakan properti baru, jika null biarkan null
                 $barang->save();
 
-                \Log::info('Updated barang status', [
+                \Log::info('Updated barang status and tanggal_keluar', [
                     'barang_id' => $barang->id_barang,
                     'old_status' => $oldStatus,
-                    'new_status' => 'diambil kembali'
+                    'new_status' => 'diambil kembali',
+                    'tanggal_keluar_in_db' => $barang->tanggal_keluar // Tambahkan ini ke log untuk debugging
                 ]);
 
-                // Update status transaksi jika ada pembeli
+                // Logika update transaksi tetap sama
                 if ($pengambilan->id_pembeli && $pengambilan->id_transaksi) {
                     $transaksi = Transaksi::find($pengambilan->id_transaksi);
                     if ($transaksi) {
                         $transaksi->status_transaksi = 'transaksi selesai';
                         $transaksi->save();
-                        
                         \Log::info('Updated transaksi status', [
                             'transaksi_id' => $transaksi->id_transaksi,
                             'new_status' => 'selesai'
@@ -247,7 +244,7 @@ class PengambilanController
                 \Log::warning('Barang not found', ['id_barang' => $validatedData['id_barang']]);
             }
 
-            // Kirim notifikasi berdasarkan tipe pengambilan
+            // ... (Kode notifikasi tetap sama)
             try {
                 if ($pengambilan->id_pembeli) {
                     \Log::info('Sending notifications for pembeli pengambilan', [
@@ -255,11 +252,9 @@ class PengambilanController
                         'penitip_id' => $pengambilan->id_penitip
                     ]);
 
-                    // Verifikasi subscription sebelum mengirim
                     $pembeli_topic = 'pembeli_' . $pengambilan->id_pembeli;
                     $penitip_topic = 'penitip_' . $pengambilan->id_penitip;
 
-                    // Verifikasi subscription
                     $pembeli_subscribed = $this->notificationController->verifyTopicSubscription($pembeli_topic);
                     $penitip_subscribed = $this->notificationController->verifyTopicSubscription($penitip_topic);
 
